@@ -6,12 +6,13 @@ from math import pi
 import numpy as np
 import pandas as pd
 
-from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, HoverTool, HBox, VBoxForm
+from bokeh.plotting import figure, show, Figure
+from bokeh.models import ColumnDataSource, HoverTool, HBox, VBoxForm, VBox
 from bokeh.models.widgets import Slider, Select, TextInput
 from bokeh.io import curdoc
 from bokeh.charts import HeatMap, bins, output_file, vplot
 from bokeh.models import FixedTicker, SingleIntervalTicker
+from bokeh.models.ranges import FactorRange
 import bokeh.palettes as palettes
 
 from pycproject.readctree import CProject
@@ -83,60 +84,84 @@ def select_cooccurrences(x_option, y_option):
 df = get_data(raw)
 meta = get_metadata(raw)
 pluginoptions = sorted(df.columns.levels[0])
+pluginoptions = ["binomial", "genus"]
 
-# create input controls
+# Create Input controls
 top_n = Slider(title="Number of top-n items to display", value=20, start=5, end=50, step=5)
-
-def create_heatmap(x_option, y_option):
-
-    logsource = select_cooccurrences(x_option, y_option)
-    x = []
-    y = []
-    counts = []
-    for xx in logsource.columns:
-        for yy in logsource.index:
-            value = logsource[xx][yy]
-            x.append(xx)
-            y.append(yy)
-            counts.append(value)
-    source = pd.DataFrame()
-    source["x"] = x
-    source["y"] = y
-    source["counts"] = counts
-    bins = np.linspace(source.counts.min(), source.counts.max(), 10) # bin labels must be one more than len(colorpalette)
-    colors = pd.cut(source.counts, bins, labels = list(reversed(palettes.Blues9)), include_lowest=True)
-    source["colors"] = colors
-
-    width = len(logsource.columns) * 30
-    height = len(logsource.index) * 30
-
-    # axis tick categorical tickers
-    xfactors = logsource.columns.tolist()
-    yfactors = logsource.index.tolist()
-
-    p = figure(plot_height=height, plot_width=width, title="", x_range=xfactors, y_range=yfactors)
-    p.title = "Top %d %s-%s co-occurrences selected" %(top_n.value, x_option, y_option)
-
-    for color in set(colors):
-        x = source[source["colors"]==color]["x"].values.tolist()
-        y = source[source["colors"]==color]["y"].values.tolist()
-        colors = list(source[source["colors"]==color]["colors"])
-        #p.quad(top=[i+1 for i in x], bottom=x, left=y, right=[i+1 for i in y], color=color)
-        #p.rect(x=x, y=y, color=color)
-        p.rect(x, y, color=colors, width=1, height=1)
-
-    p.xaxis.major_label_orientation = pi/4
-    p.yaxis.major_label_orientation = pi/4
-
-    return p
+x_axis = Select(title="X Axis", options=sorted(pluginoptions), value="binomial")
+y_axis = Select(title="Y Axis", options=sorted(pluginoptions), value="genus")
 
 
-hboxes = []
-for xo in ["binomial", "genus", "human", "dnaprimer"]:
-    row = []
-    for yo in ["binomial", "genus", "human", "dnaprimer"]:
-        row.append(create_heatmap(xo, yo))
-    hboxes.append(HBox(*row))
+x = []
+x_optionlist = []
+y = []
+y_optionlist = []
+counts = []
+for x_option in pluginoptions:
+    for y_option in pluginoptions:
+        logsource = select_cooccurrences(x_option, y_option)
+        for xx in logsource.columns:
+            for yy in logsource.index:
+                x.append(xx)
+                x_optionlist.append(x_option)
+                y.append(yy)
+                y_optionlist.append(y_option)
+                counts.append(logsource[xx][yy])
 
-layout = VBox(*hboxes)
+df2 = pd.DataFrame()
+df2["x"] = x
+df2["x_option"] = x_optionlist
+df2["y"] = y
+df2["y_option"] = y_optionlist
+df2["counts"] = counts
+bins = np.linspace(df2.counts.min(), df2.counts.max(), 10) # bin labels must be one more than len(colorpalette)
+color = pd.cut(df2.counts, bins, labels = list(reversed(palettes.Blues9)), include_lowest=True)
+df2["color"] = color
+
+
+def select_facts():
+    selected = df2[
+        (df2.x_option.isin([x_axis.value]) &
+         df2.y_option.isin([y_axis.value]))
+    ]
+    return selected
+
+def update(attrname, old, new):
+    selected = select_facts()
+
+    p.xaxis.axis_label = x_axis.value
+    p.yaxis.axis_label = y_axis.value
+    p.title = "Top %d fact co-occurrences selected" % top_n.value
+    src = ColumnDataSource(dict(
+        x=selected["x"].astype(object),
+        y=selected["y"].astype(object),
+        color=selected["color"].astype(object)
+    ))
+    source.data.update(src.data)
+    p.x_range.update(factors=list(set(source.data.get("x"))))
+    p.y_range.update(factors=list(set(source.data.get("y"))))
+
+selected = select_facts()
+source = ColumnDataSource(data=dict(x=[], y=[], color=[]))
+source.data.update(ColumnDataSource(dict(
+    x=selected["x"].astype(object),
+    y=selected["y"].astype(object),
+    color=selected["color"].astype(object)
+    )).data)
+
+p = Figure(plot_height=900, plot_width=900, title="", toolbar_location=None,
+           x_range=list(set(source.data.get("x"))), y_range=list(set(source.data.get("y"))))
+p.rect(x="x", y="y", source=source, color="color", width=1, height=1)
+p.xaxis.major_label_orientation = pi/4
+p.yaxis.major_label_orientation = pi/4
+
+controls = [top_n, x_axis, y_axis]
+for control in controls:
+    control.on_change('value', update)
+
+inputs = HBox(VBoxForm(*controls), width=300)
+
+update(None, None, None) # initial load of the data
+
+layout = HBox(inputs, p)
 curdoc().add_root(layout)
