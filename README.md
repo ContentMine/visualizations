@@ -4,7 +4,7 @@ Create and publish interactive visualizations of ContentMine-facts.
 
 ## Installation and Requirements
 
-The easiest entry is by using [Anaconda](https://www.continuum.io/downloads) with Python 3, and creating a new virtualenvironment.
+The easiest entry is by using [Anaconda](https://www.continuum.io/downloads) with Python 3, opening the Anaconda Prompt and creating a new virtual environment.
 
 ```
 conda create -n contentmine3 python=3.4 anaconda
