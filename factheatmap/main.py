@@ -84,7 +84,7 @@ def select_cooccurrences(x_option, y_option):
 df = get_data(raw)
 meta = get_metadata(raw)
 pluginoptions = sorted(df.columns.levels[0])
-pluginoptions = ["binomial", "genus"]
+pluginoptions = ["genus", "binomial", "dnaprimer", "human"]
 
 # Create Input controls
 top_n = Slider(title="Number of top-n items to display", value=20, start=5, end=50, step=5)
