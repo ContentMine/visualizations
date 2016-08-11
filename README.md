@@ -28,5 +28,5 @@ pip install pandas bokeh jupyter pycproject matplotlib scipy
 ## Running a visualization
 
 * Change path to input-data
-* change working directory to repo
-* start application with `bokeh serve --show APPNAME`
+* change working directory to `visualizations`
+* start application with `bokeh serve --show cmvisualizations/APPNAME`
