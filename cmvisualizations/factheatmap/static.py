@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from bokeh.plotting import Figure, show
 from bokeh.models import ColumnDataSource, HoverTool, HBox, VBox, VBoxForm
 from bokeh.models.widgets import Slider, Select, TextInput
-from bokeh.io import curdoc, output_notebook, output_file, save
+from bokeh.io import curdoc, output_file, save
 from bokeh.charts import HeatMap, bins, vplot
 from bokeh.models import FixedTicker, SingleIntervalTicker
 from bokeh.layouts import gridplot
