@@ -9,35 +9,30 @@ import matplotlib.pyplot as plt
 from bokeh.plotting import Figure, show
 from bokeh.models import ColumnDataSource, HoverTool, HBox, VBox, VBoxForm
 from bokeh.models.widgets import Slider, Select, TextInput
-from bokeh.io import curdoc, output_notebook, output_file, save
+from bokeh.io import curdoc, output_file, save
 from bokeh.charts import HeatMap, bins, vplot
 from bokeh.models import FixedTicker, SingleIntervalTicker
+from bokeh.layouts import gridplot
 
 import bokeh.palettes as palettes
 import bokeh.resources as resources
 
 import itertools
-from hashlib import md5
 
 from cmvisualizations.preprocessing import preprocessing
-
-
-factsfile = "facts20160601-05.json".encode("utf-8")
-metadatafile = "metadata20160601-05.json".encode("utf-8")
-fname = md5(factsfile+metadatafile).hexdigest()
-
+from cmvisualizations import config
 
 coocc_features = preprocessing.get_coocc_features()
 
 # Create Input controls
 pluginoptions = sorted(coocc_features.index.levels[0])
 top_n = Slider(title="Number of top-n items to display", value=20, start=5, end=50, step=5)
-x_axis = Select(title="X Axis", options=sorted(pluginoptions), value=pluginoptions[0])
-y_axis = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptions[0])
+# x_axis = Select(title="X Axis", options=sorted(pluginoptions), value=pluginoptions[0])
+# y_axis = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptions[0])
 
 
-def select_facts(coocc_features):
-    logsource = np.log(coocc_features.ix[x_axis.value][y_axis.value]+1)
+def select_facts(coocc_features, x_axis, y_axis):
+    logsource = np.log(coocc_features.ix[x_axis][y_axis]+1)
 
     n_cols = len(logsource.columns)
     n_rows = len(logsource.index)
@@ -57,49 +52,38 @@ def select_facts(coocc_features):
     ]
     return selected
 
-def update(attrname, old, new):
-    new_selected = select_facts(coocc_features)
 
-    p.xaxis.axis_label = x_axis.value
-    p.yaxis.axis_label = y_axis.value
-    p.title = "Top %d fact co-occurrences selected" % top_n.value
-    src = ColumnDataSource(dict(
-        x=new_selected["x"].astype(object),
-        y=new_selected["y"].astype(object),
-        color=new_selected["color"].astype(object)
-    ))
-    source.data.update(src.data)
+def make_plot(x_axis, y_axis):
+    selected = select_facts(coocc_features, x_axis, y_axis)
+    source = ColumnDataSource(data=dict(x=[], y=[], color=[]))
+    source.data.update(ColumnDataSource(dict(
+        x=selected["x"].astype(object),
+        y=selected["y"].astype(object),
+        color=selected["color"].astype(object)
+        )).data)
+
+    p = Figure(title="", toolbar_location=None,
+               x_range=list(set(source.data.get("x"))), y_range=list(set(source.data.get("y"))))
+    p.title.text = "Top %d fact co-occurrences selected" % top_n.value
+    p.rect(x="x", y="y", source=source, color="color", width=1, height=1)
+    p.xaxis.axis_label = x_axis
+    p.yaxis.axis_label = y_axis
+    p.xaxis.major_label_orientation = np.pi/4
+    p.yaxis.major_label_orientation = np.pi/4
     p.x_range.update(factors=list(set(source.data.get("x"))))
     p.y_range.update(factors=list(set(source.data.get("y"))))
 
-selected = select_facts(coocc_features)
-source = ColumnDataSource(data=dict(x=[], y=[], color=[]))
-source.data.update(ColumnDataSource(dict(
-    x=selected["x"].astype(object),
-    y=selected["y"].astype(object),
-    color=selected["color"].astype(object)
-    )).data)
+    return p
 
-p = Figure(plot_height=900, plot_width=900, title="", toolbar_location=None,
-           x_range=list(set(source.data.get("x"))), y_range=list(set(source.data.get("y"))))
-p.rect(x="x", y="y", source=source, color="color", width=1, height=1)
-p.xaxis.major_label_orientation = np.pi/4
-p.yaxis.major_label_orientation = np.pi/4
+plots = []
+for x_axis, y_axis in itertools.product(pluginoptions, repeat=2):
+    plots.append(make_plot(x_axis, y_axis))
 
-controls = [top_n, x_axis, y_axis]
-for control in controls:
-    control.on_change('value', update)
-
-inputs = HBox(VBoxForm(*controls), width=300)
-
-update(None, None, None) # initial load of the data
-
-layout = HBox(inputs, p)
-curdoc().add_root(layout)
+grid = gridplot(plots, ncols=2, plot_width=600, plot_height=600)
 
 # session = push_session(curdoc())
 # script = autoload_server(plot, session_id=session.id)
 
-show(curdoc())
-output_file(fname+'heatmap.html')
-save(obj=curdoc(), filename=fname+'heatmap.html', resources=resources.INLINE)
+show(grid)
+output_file(os.path.join(config.resultspath, 'static_heatmap.html'))
+save(obj=grid, filename=os.path.join(config.resultspath, 'static_heatmap.html', resources=resources.INLINE))
