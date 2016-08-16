@@ -86,4 +86,4 @@ grid = gridplot(plots, ncols=2, plot_width=600, plot_height=600)
 
 show(grid)
 output_file(os.path.join(config.resultspath, 'static_heatmap.html'))
-save(obj=grid, filename=os.path.join(config.resultspath, 'static_heatmap.html', resources=resources.INLINE))
+save(obj=grid, filename=os.path.join(config.resultspath, 'static_heatmap.html'), resources=resources.INLINE)

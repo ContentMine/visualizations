@@ -36,8 +36,8 @@ At the moment very basic, three options have to be set in `config.py`:
 
 ## Getting some testdata
 
-
-
+* Download the facts and metadata json-files from [Zenodo](https://zenodo.org/record/58839#.V7L6wO1MdhF), and place them into the `rawdatapath`.
+* rename the files into `facts.json` and `metadata.json`
 
 ## Produce static plots
 
