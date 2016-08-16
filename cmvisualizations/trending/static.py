@@ -1,6 +1,5 @@
 # main.py
-
-from os.path import dirname, join
+import os
 
 from math import pi
 import numpy as np
@@ -20,18 +19,13 @@ import bokeh.resources as resources
 
 from itertools import chain, repeat
 
-from hashlib import md5
-
 from cmvisualizations.preprocessing import preprocessing
+from cmvisualizations import config
 
-
-factsfile = "facts20160601-05.json".encode("utf-8")
-metadatafile = "metadata20160601-05.json".encode("utf-8")
-fname = md5(factsfile+metadatafile).hexdigest()
 
 ts = preprocessing.get_timeseries_features()
-
-
+# ts = ts.diff()/ts*100
+# ts = ts.cumsum()
 # options:
 # ts.groupby(pd.TimeGrouper(freq='A')).sum()
 # ts[pluginoption]
@@ -41,32 +35,28 @@ ts = preprocessing.get_timeseries_features()
 # ts.T.xs("zika", level='term').T
 
 
-def get_dataset(ts, facetvalue, top_nvalue, timegroupactive):
-    if facetvalue == "All":
-        ts_a = ts
-        ts_a.columns = ts.columns.droplevel()
-        selection = ts_a.groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroupactive])) \
-                        .sum() \
-                        .sort_values(ascending=False)[:top_nvalue] \
-                        .index
-        selected = ts_a[selection]
-    else:
-        selection = ts.groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroupactive])) \
-                        .sum()[facetvalue] \
-                        .sum().sort_values(ascending=False)[:top_nvalue] \
-                        .index
-        selected = ts[facetvalue][selection]
+def get_dataset(ts, facetvalue, top_nvalue, timegroupactive, relative):
+    if relative:
+        ts = ts.diff()/ts*100
+        ts = ts.cumsum()
+    selection = ts.groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroupactive])) \
+                    .sum()[facetvalue] \
+                    .sum().sort_values(ascending=False)[:top_nvalue] \
+                    .index
+    selected = ts[facetvalue][selection]
     return ColumnDataSource(selected)
 
 
 # Create Input controls
 pluginoptions = sorted(ts.columns.levels[0])
 timegroupoptionsmapper = {0:"A", 1:"M", 2:"D"}
+trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
 
 top_n = Slider(title="Number of top-n items to display", value=5, start=1, end=20, step=1)
 facet = Select(title="Facets", options=pluginoptions, value=pluginoptions[0])
 timegroup = RadioGroup(labels=timegroupoptions, active=2)
+trending_chooser = RadioGroup(labels=["absolute counts", "period-to-period change"], active=0)
 
 colors = palettes.Paired12
 
@@ -77,7 +67,7 @@ def make_plot(facetvalue):
     p.xaxis.axis_label = facetvalue
     p.yaxis.axis_label = "Count"
 
-    source = get_dataset(ts, facetvalue, top_n.value, timegroup.active)
+    source = get_dataset(ts, facetvalue, top_n.value, timegroup.active, trending_chooser.active)
     i=0
     for l in source.data.keys():
         if l != 'firstPublicationDate':
@@ -96,5 +86,5 @@ grid = gridplot(plots, ncols=2, plot_width=600, plot_height=300)
 # script = autoload_server(plot, session_id=session.id)
 
 show(grid)
-output_file(fname+'static_timeseries.html')
-save(obj=grid, filename=fname+'static_timeseries.html', resources=resources.INLINE)
+output_file(os.path.join(config.resultspath, 'static_timeseries_trending.html'))
+save(obj=grid, filename=os.path.join(config.resultspath, 'static_timeseries_trending.html'), resources=resources.INLINE)

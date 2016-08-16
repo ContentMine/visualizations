@@ -25,8 +25,33 @@ pip install pandas bokeh jupyter pycproject matplotlib scipy
   * matplotlib
   * scipy
 
-## Running a visualization
 
-* Change path to input-data
+## Configuration
+
+At the moment very basic, three options have to be set in `config.py`:
+* `rawdatapath` = where the raw data in form of `facts.json` and `metadata.json` is expected
+* `cacheddatapath` = where the intermediary dataframes can be stored for reuse
+* `resultspath` = where the output-htmls and plots are expected
+
+
+## Getting some testdata
+
+
+
+
+## Produce static plots
+
+* Active virtualenv with `source activate contentmine3`
+* Change paths in `cmvisualizations/config.py`
 * change working directory to `visualizations`
-* start application with `bokeh serve --show cmvisualizations/APPNAME`
+* run script with `python3 cmvisualizations/APPNAME/static.py`, e.g. `python3 cmvisualizations/trending/static.py`
+* Output files can be found in the corresponding `resultspath` from config
+
+
+## Running an inveractive visualization
+
+* Active virtualenv with `source activate contentmine3`
+* Change paths in `cmvisualizations/config.py`
+* change working directory to `visualizations`
+* start application with `bokeh serve --show cmvisualizations/APPNAME/interactive.py`, e.g. `bokeh serve --show cmvisualizations/factheatmap/interactive.py`
+* This should - after a few seconds of preprocessing - open a new browser window with the interactive visualization

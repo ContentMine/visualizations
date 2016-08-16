@@ -3,25 +3,17 @@ This script runs preprocessing on either a CProject folder or an elasticsearch-d
 and produces dataframes as input for visualizations.
 """
 
-import argparse
 import pandas as pd
 import numpy as np
-from hashlib import md5
 import os
-
-parser = argparse.ArgumentParser(description='ingest and preprocess contentmine facts from elasticsearch dumps and CProjects')
-parser.add_argument('--raw', dest='raw', help='relative or absolute path of the raw data folder')
-parser.add_argument('--elastic', dest='elastic', help='flag if input is elastic-dump', action="store_true")
-parser.add_argument('--cproject', dest='cproject', help='flag if input is cproject', action="store_true")
-args = parser.parse_args()
+from cmvisualizations import config
 
 ### functions for ingesting from elastic
 
-
-factsfile = "facts20160601-05.json"
-metadatafile = "metadata20160601-05.json"
-datapath = os.path.join(os.getcwd(),"../test/testdata/")
-fname = md5(factsfile.encode("utf-8")+metadatafile.encode("utf-8")).hexdigest()
+factsfile = "facts.json"
+metadatafile = "metadata.json"
+rawdatapath = config.rawdatapath
+cacheddatapath = config.cacheddatapath
 
 def get_raw(filename):
     with open(filename) as infile:
@@ -50,20 +42,20 @@ def clean(df):
                 df[col] = notnull[col].map(lambda x: x[0])
 
 def preprocess():
-    rawfacts = get_raw(os.path.join(datapath, factsfile))
-    rawmetadata = get_raw(os.path.join(datapath, metadatafile))
+    rawfacts = get_raw(os.path.join(rawdatapath, factsfile))
+    rawmetadata = get_raw(os.path.join(rawdatapath, metadatafile))
     parsed_facts = rawfacts.join(pd.DataFrame(rawfacts["_source"].to_dict()).T).drop("_source", axis=1)
     parsed_metadata = rawmetadata.join(pd.DataFrame(rawmetadata["_source"].to_dict()).T).drop("_source", axis=1)
     clean(parsed_facts)
     clean(parsed_metadata)
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
     df["sourcedict"] = get_aspect(df)
-    df.to_pickle(fname+"preprocessed_df.pkl")
+    df.to_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
     return df
 
 def get_preprocessed_df():
     try:
-        df = pd.read_pickle(fname+"preprocessed_df.pkl")
+        df = pd.read_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
     except:
         df = preprocess()
     return df
@@ -71,14 +63,10 @@ def get_preprocessed_df():
 
 ## functions to extract features
 
-def make_coocc_pivot():
+def get_coocc_pivot():
     df = get_preprocessed_df()
     coocc_raw = df[["cprojectID", "term", "sourcedict"]]
     coocc_pivot = coocc_raw.pivot_table(index=["sourcedict", 'term'], columns='cprojectID', aggfunc=len)
-    return coocc_pivot
-
-def get_coocc_pivot():
-    coocc_pivot = make_coocc_pivot()
     return coocc_pivot
 
 def make_cooccurrences():
@@ -87,27 +75,52 @@ def make_cooccurrences():
     M = np.matrix(df.fillna(0))
     C = np.dot(M, M.T)
     coocc = pd.DataFrame(data=C, index=labels, columns=labels)
-    coocc.to_pickle(fname+"coocc_features.pkl")
+    coocc.to_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
     return coocc
 
 def get_coocc_features():
     try:
-        coocc_features = pd.read_pickle(fname+"coocc_features.pkl")
+        coocc_features = pd.read_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
     except:
         coocc_features = make_cooccurrences()
     return coocc_features
+
+def get_timeseries_pivot():
+    df = get_preprocessed_df()
+    ts_raw = df[["firstPublicationDate", "term", "sourcedict"]]
+    ts_pivot = ts_raw.pivot_table(index='firstPublicationDate', columns=["sourcedict", "term"], aggfunc=len)
+    return ts_pivot
+
+def make_timeseries():
+    ts = get_timeseries_pivot()
+    ts.index = pd.to_datetime(ts.index)
+    ts.to_pickle(os.path.join(cacheddatapath, "timeseries_features.pkl"))
+    return ts
+
+def get_timeseries_features():
+    try:
+        ts_features = pd.read_pickle(os.path.join(cacheddatapath, "timeseries_features.pkl"))
+    except:
+        ts_features = make_timeseries()
+    return ts_features
+
+def make_distribution_featues():
+    df = get_preprocessed_df()
+    dist_raw = df[["firstPublicationDate", "term", "sourcedict"]]
+    return dist_features
+
+def get_distribution_features():
+    try:
+        dist_features = pd.read_pickle(os.path.join(cacheddatapath, "dist_features.pkl"))
+    except:
+        dist_features = make_distribution_features()
+    return dist_features
+
+
+####
 
 def ingest_elasticdump(path):
     pass
 
 def ingest_cproject(path):
     pass
-
-def main(args):
-    if args.elastic:
-        ingest_elasticdump(args.raw)
-    if args.cproject:
-        ingest_cproject(args.raw)
-
-if __name__ == '__main__':
-    main(args)

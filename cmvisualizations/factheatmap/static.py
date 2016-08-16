@@ -18,15 +18,9 @@ import bokeh.palettes as palettes
 import bokeh.resources as resources
 
 import itertools
-from hashlib import md5
 
 from cmvisualizations.preprocessing import preprocessing
-
-
-factsfile = "facts20160601-05.json".encode("utf-8")
-metadatafile = "metadata20160601-05.json".encode("utf-8")
-fname = md5(factsfile+metadatafile).hexdigest()
-
+from cmvisualizations import config
 
 coocc_features = preprocessing.get_coocc_features()
 
@@ -91,5 +85,5 @@ grid = gridplot(plots, ncols=2, plot_width=600, plot_height=600)
 # script = autoload_server(plot, session_id=session.id)
 
 show(grid)
-output_file(fname+'static_heatmap.html')
-save(obj=grid, filename=fname+'static_heatmap.html', resources=resources.INLINE)
+output_file(os.path.join(config.resultspath, 'static_heatmap.html'))
+save(obj=grid, filename=os.path.join(config.resultspath, 'static_heatmap.html', resources=resources.INLINE))

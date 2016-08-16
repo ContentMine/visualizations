@@ -17,14 +17,9 @@ import bokeh.palettes as palettes
 import bokeh.resources as resources
 
 import itertools
-from hashlib import md5
 
 from cmvisualizations.preprocessing import preprocessing
-
-
-factsfile = "facts20160601-05.json".encode("utf-8")
-metadatafile = "metadata20160601-05.json".encode("utf-8")
-fname = md5(factsfile+metadatafile).hexdigest()
+from cmvisualizations import config
 
 
 coocc_features = preprocessing.get_coocc_features()
@@ -62,7 +57,7 @@ def update(attrname, old, new):
 
     p.xaxis.axis_label = x_axis.value
     p.yaxis.axis_label = y_axis.value
-    p.title = "Top %d fact co-occurrences selected" % top_n.value
+    p.title.text = "Top %d fact co-occurrences selected" % top_n.value
     src = ColumnDataSource(dict(
         x=new_selected["x"].astype(object),
         y=new_selected["y"].astype(object),
@@ -101,5 +96,3 @@ curdoc().add_root(layout)
 # script = autoload_server(plot, session_id=session.id)
 
 show(curdoc())
-output_file(fname+'heatmap.html')
-save(obj=curdoc(), filename=fname+'heatmap.html', resources=resources.INLINE)
