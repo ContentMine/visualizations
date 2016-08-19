@@ -6,12 +6,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
 from bokeh.models import ColumnDataSource, HoverTool, HBox, VBox, VBoxForm
-from bokeh.models.widgets import Slider, Select, TextInput
+from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn, Paragraph
 from bokeh.io import curdoc, output_notebook, output_file, save
 from bokeh.charts import HeatMap, bins, vplot
-from bokeh.models import FixedTicker, SingleIntervalTicker
+from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTool, ResetTool
 
 import bokeh.palettes as palettes
 import bokeh.resources as resources
@@ -33,13 +34,16 @@ y_axis = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptio
 
 def select_facts(coocc_features):
     logsource = np.log(coocc_features.ix[x_axis.value][y_axis.value]+1)
-
+    x_sorted = logsource.ix[logsource.sum(axis=1).sort_values(ascending=False).index]
+    y_sorted = x_sorted.T.ix[x_sorted.T.sum(axis=1).sort_values(ascending=False).index]
+    logsource = y_sorted.T
     n_cols = len(logsource.columns)
     n_rows = len(logsource.index)
     df = pd.DataFrame()
     df["x"] = list(itertools.chain.from_iterable(list(itertools.repeat(i, times=n_cols)) for i in logsource.index))
     df["y"] = list(itertools.chain.from_iterable(list(itertools.repeat(logsource.stack().index.levels[1].values, times=n_rows))))
     df["counts"] = logsource.stack().values
+    df["raw"] = df["counts"].map(np.exp)-1
     df.sort_values("counts", ascending=False, inplace=True)
     bins = np.linspace(df.counts.min(), df.counts.max(), 10) # bin labels must be one more than len(colorpalette)
     df["color"] = pd.cut(df.counts, bins, labels = list(reversed(palettes.Blues9)), include_lowest=True)
@@ -50,10 +54,10 @@ def select_facts(coocc_features):
         (df.x.isin(selected_x) &
          df.y.isin(selected_y) )
     ]
-    return selected
+    return selected, selected_x, selected_y
 
 def update(attrname, old, new):
-    new_selected = select_facts(coocc_features)
+    new_selected, selected_x, selected_y = select_facts(coocc_features)
 
     p.xaxis.axis_label = x_axis.value
     p.yaxis.axis_label = y_axis.value
@@ -61,25 +65,35 @@ def update(attrname, old, new):
     src = ColumnDataSource(dict(
         x=new_selected["x"].astype(object),
         y=new_selected["y"].astype(object),
-        color=new_selected["color"].astype(object)
-    ))
+        color=new_selected["color"].astype(object),
+        raw=selected["raw"].astype(int)))
     source.data.update(src.data)
-    p.x_range.update(factors=list(set(source.data.get("x"))))
-    p.y_range.update(factors=list(set(source.data.get("y"))))
+    p.x_range.update(factors=selected_x.tolist())
+    p.y_range.update(factors=selected_y.tolist())
 
-selected = select_facts(coocc_features)
-source = ColumnDataSource(data=dict(x=[], y=[], color=[]))
+selected, selected_x, selected_y = select_facts(coocc_features)
+source = ColumnDataSource(data=dict(x=[], y=[], color=[], raw=[]))
 source.data.update(ColumnDataSource(dict(
     x=selected["x"].astype(object),
     y=selected["y"].astype(object),
-    color=selected["color"].astype(object)
-    )).data)
+    color=selected["color"].astype(object),
+    raw=selected["raw"].astype(int)))
+    .data)
 
-p = Figure(plot_height=900, plot_width=900, title="", toolbar_location=None,
-           x_range=list(set(source.data.get("x"))), y_range=list(set(source.data.get("y"))))
+TOOLS="tap, box_select, reset"
+
+p = Figure(plot_height=900, plot_width=900, title="",
+           tools=TOOLS, toolbar_location="above",
+           x_range=selected_x.tolist(), y_range=selected_x.tolist())
 p.rect(x="x", y="y", source=source, color="color", width=1, height=1)
 p.xaxis.major_label_orientation = np.pi/4
 p.yaxis.major_label_orientation = np.pi/4
+
+table_columns = [TableColumn(field="x", title="X-axis facts"),
+                 TableColumn(field="y", title="Y-axis facts"),
+                 TableColumn(field="raw", title="Counts")]
+data_table = DataTable(source=source, columns=table_columns, width=400, height=900)
+
 
 controls = [top_n, x_axis, y_axis]
 for control in controls:
@@ -89,10 +103,9 @@ inputs = HBox(VBoxForm(*controls), width=300)
 
 update(None, None, None) # initial load of the data
 
-layout = HBox(inputs, p)
+inputs = column(*controls)
+layout = row(column(inputs), p, data_table)
 curdoc().add_root(layout)
-
-# session = push_session(curdoc())
-# script = autoload_server(plot, session_id=session.id)
+curdoc().title = "Exploring co-occurrences of fact between facets"
 
 show(curdoc())
