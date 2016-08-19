@@ -50,6 +50,7 @@ def preprocess():
     clean(parsed_metadata)
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
     df["sourcedict"] = get_aspect(df)
+    df["term"] = df["term"].map(str.lower)
     df.to_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
     return df
 
@@ -63,13 +64,19 @@ def get_preprocessed_df():
 
 ## functions to extract features
 
+def count_occurrences():
+    df = get_preprocessed_df()
+    # replace pmcid by doi ideally
+    groups = df[["pmcid", "term"]].groupby("term").groups
+    return groups
+
 def get_coocc_pivot():
     df = get_preprocessed_df()
     coocc_raw = df[["cprojectID", "term", "sourcedict"]]
     coocc_pivot = coocc_raw.pivot_table(index=["sourcedict", 'term'], columns='cprojectID', aggfunc=len)
     return coocc_pivot
 
-def make_cooccurrences():
+def count_cooccurrences():
     df = get_coocc_pivot()
     labels = df.index
     M = np.matrix(df.fillna(0))
@@ -82,7 +89,7 @@ def get_coocc_features():
     try:
         coocc_features = pd.read_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
     except:
-        coocc_features = make_cooccurrences()
+        coocc_features = count_cooccurrences()
     return coocc_features
 
 def get_timeseries_pivot():
@@ -104,7 +111,7 @@ def get_timeseries_features():
         ts_features = make_timeseries()
     return ts_features
 
-def make_distribution_featues():
+def make_distribution_features():
     df = get_preprocessed_df()
     dist_raw = df[["firstPublicationDate", "term", "sourcedict"]]
     return dist_features
