@@ -112,8 +112,8 @@ for control in controls:
 
 update(None, None, None) # initial load of the data
 
-inputs = column(*controls)
-layout = row(column(inputs), p, data_table)
+inputs = row(*controls)
+layout = column(inputs, row(p, data_table))
 curdoc().add_root(layout)
 curdoc().title = "Exploring co-occurrences of fact between facets"
 
