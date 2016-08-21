@@ -28,8 +28,8 @@ coocc_features = preprocessing.get_coocc_features()
 # Create Input controls
 pluginoptions = sorted(coocc_features.index.levels[0])
 top_n = Slider(title="Number of top-n items to display", value=20, start=5, end=50, step=5)
-x_axis_selector = Select(title="X Axis", options=sorted(pluginoptions), value=pluginoptions[0])
-y_axis_selector = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptions[0])
+x_axis_selector = Select(title="X Axis", options=sorted(pluginoptions), value=pluginoptions[2])
+y_axis_selector = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptions[1])
 
 
 def prepare_facts(facets):
@@ -58,45 +58,47 @@ def make_subset(coocc_features, x_axis, y_axis):
     new_x_factors = logsource.index.values.tolist()
     new_y_factors = logsource.columns.values.tolist()
 
-    return df, (new_x_factors, new_y_factors)
+    return df, new_x_factors, new_y_factors
 
 factsets = prepare_facts(pluginoptions)
 
 def get_subset(x_axis, y_axis):
-    return factsets[(x_axis, y_axis)]
+    return factsets.get((x_axis, y_axis))
 
 def update(attrname, old, new):
-    new_selected, axis_factors = get_subset(x_axis_selector.value, y_axis_selector.value)
+    new_selected, new_x_factors, new_y_factors = get_subset(x_axis_selector.value, y_axis_selector.value)
 
     p.xaxis.axis_label = x_axis_selector.value
     p.yaxis.axis_label = y_axis_selector.value
     p.title.text = "Top %d fact co-occurrences selected" % top_n.value
+
     src = ColumnDataSource(dict(
         x=new_selected["x"].astype(object),
         y=new_selected["y"].astype(object),
         color=new_selected["color"].astype(object),
         raw=new_selected["raw"].astype(int)))
     source.data.update(src.data)
-    p.x_range.update(factors=axis_factors[0][:top_n.value])
-    p.y_range.update(factors=axis_factors[1][:top_n.value])
 
-selected, axis_factors = get_subset(x_axis_selector.value, y_axis_selector.value)
+    p.x_range.update(factors=new_x_factors[:top_n.value])
+    p.y_range.update(factors=new_y_factors[:top_n.value])
+
 source = ColumnDataSource(data=dict(x=[], y=[], color=[], raw=[]))
-source.data.update(ColumnDataSource(dict(
-    x=selected["x"].astype(object),
-    y=selected["y"].astype(object),
-    color=selected["color"].astype(object),
-    raw=selected["raw"].astype(int)))
-    .data)
+selected, new_x_factors, new_y_factors = get_subset(x_axis_selector.value, y_axis_selector.value)
 
 TOOLS="tap, box_select, reset"
 
 p = Figure(plot_height=900, plot_width=900, title="",
            tools=TOOLS, toolbar_location="above",
-           x_range=axis_factors[0][:top_n.value],  y_range=axis_factors[1][:top_n.value])
-p.rect(x="x", y="y", source=source, color="color", width=1, height=1)
+           x_range=new_x_factors[:top_n.value],  y_range=new_y_factors[:top_n.value])
+p.rect(x="x", y="y", source=source, color="color", width=0.95, height=0.95, name="glyphs")
 p.xaxis.major_label_orientation = np.pi/4
 p.yaxis.major_label_orientation = np.pi/4
+p.xgrid.visible = False
+p.ygrid.visible = False
+
+renderer = p.select(name="glyphs")[0]
+renderer.selection_glyph = renderer.glyph
+renderer.nonselection_glyph = renderer.glyph
 
 table_columns = [TableColumn(field="x", title="X-axis facts"),
                  TableColumn(field="y", title="Y-axis facts"),
@@ -107,8 +109,6 @@ data_table = DataTable(source=source, columns=table_columns, width=400, height=9
 controls = [top_n, x_axis_selector, y_axis_selector]
 for control in controls:
     control.on_change('value', update)
-
-inputs = HBox(VBoxForm(*controls), width=300)
 
 update(None, None, None) # initial load of the data
 
