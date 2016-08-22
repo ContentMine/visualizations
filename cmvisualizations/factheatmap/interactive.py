@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
-from bokeh.models import ColumnDataSource, HoverTool, HBox, VBox, VBoxForm
-from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn, Paragraph
+from bokeh.models import ColumnDataSource, HoverTool
+from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn, Paragraph, Div
 from bokeh.io import curdoc, output_notebook, output_file, save
 from bokeh.charts import HeatMap, bins, vplot
 from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTool, ResetTool
@@ -27,7 +27,7 @@ coocc_features = preprocessing.get_coocc_features()
 
 # Create Input controls
 pluginoptions = sorted(coocc_features.index.levels[0])
-top_n = Slider(title="Number of top-n items to display", value=20, start=5, end=50, step=5)
+top_n = Slider(title="Number of top-n items to display", value=10, start=5, end=25, step=5)
 x_axis_selector = Select(title="X Axis", options=sorted(pluginoptions), value=pluginoptions[2])
 y_axis_selector = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptions[1])
 
@@ -87,7 +87,7 @@ selected, new_x_factors, new_y_factors = get_subset(x_axis_selector.value, y_axi
 
 TOOLS="tap, box_select, reset"
 
-p = Figure(plot_height=900, plot_width=900, title="",
+p = Figure(plot_height=700, plot_width=700, title="",
            tools=TOOLS, toolbar_location="above",
            x_range=new_x_factors[:top_n.value],  y_range=new_y_factors[:top_n.value])
 p.rect(x="x", y="y", source=source, color="color", width=0.95, height=0.95, name="glyphs")
@@ -103,7 +103,7 @@ renderer.nonselection_glyph = renderer.glyph
 table_columns = [TableColumn(field="x", title="X-axis facts"),
                  TableColumn(field="y", title="Y-axis facts"),
                  TableColumn(field="raw", title="Counts")]
-data_table = DataTable(source=source, columns=table_columns, width=400, height=900)
+data_table = DataTable(source=source, columns=table_columns, width=400, height=600)
 
 
 controls = [top_n, x_axis_selector, y_axis_selector]
@@ -112,9 +112,16 @@ for control in controls:
 
 update(None, None, None) # initial load of the data
 
+### LAYOUT
+
+content_filename = os.path.join(os.path.dirname(__file__), "description.html")
+
+description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
+
+
 inputs = row(*controls)
 layout = column(inputs, row(p, data_table))
-curdoc().add_root(layout)
+curdoc().add_root(column(description, layout))
 curdoc().title = "Exploring co-occurrences of fact between facets"
 
 show(curdoc())
