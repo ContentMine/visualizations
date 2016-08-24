@@ -4,7 +4,7 @@ import os
 from math import pi
 import numpy as np
 import pandas as pd
-import glob
+import os
 
 from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
@@ -104,7 +104,7 @@ trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
 
 top_n = Slider(title="Number of top-n items to display", value=10, start=1, end=10, step=1)
-facet = Select(title="Facets", options=pluginoptions, value=pluginoptions[3])
+facet = Select(title="Facets", options=pluginoptions, value=pluginoptions[1])
 timegroup = RadioGroup(labels=timegroupoptions, active=2)
 trending_chooser = RadioGroup(labels=["absolute counts", "period-to-period change"], active=0)
 
@@ -128,7 +128,7 @@ def make_plots(linesources, pointsources):
     plots = []
     i=0
     for linesource, pointsource in zip(linesources, pointsources):
-        fig = Figure(title=None, toolbar_location=None,
+        fig = Figure(title=None, toolbar_location=None, tools=[],
                    x_axis_type="datetime",
                    width=300, height=90)
 
@@ -174,5 +174,10 @@ inputs = row(*controls)
 
 update(None, None, None) # initial load of the data
 
-layout = column(inputs, row(column(abs_arrangement), column(rel_arrangement)))
+### LAYOUT
+
+content_filename = os.path.join(os.path.dirname(__file__), "description.html")
+description = Div(text=open(content_filename).read(), render_as_text=False, width=900)
+
+layout = column(description, inputs, row(column(abs_arrangement), column(rel_arrangement)))
 curdoc().add_root(layout)
