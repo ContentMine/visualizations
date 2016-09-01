@@ -6,13 +6,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
 from bokeh.models import ColumnDataSource, HoverTool, HBox, VBox, VBoxForm
-from bokeh.models.widgets import Slider, Select, TextInput
-from bokeh.io import curdoc, output_file, save
+from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn, Paragraph
+from bokeh.io import curdoc, output_notebook, output_file, save
 from bokeh.charts import HeatMap, bins, vplot
-from bokeh.models import FixedTicker, SingleIntervalTicker
-from bokeh.layouts import gridplot
+from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTool, ResetTool
 
 import bokeh.palettes as palettes
 import bokeh.resources as resources
@@ -25,11 +25,7 @@ from cmvisualizations import config
 coocc_features = preprocessing.get_coocc_features()
 
 # Create Input controls
-pluginoptions = sorted(coocc_features.index.levels[0])
-top_n = Slider(title="Number of top-n items to display", value=20, start=5, end=50, step=5)
-# x_axis = Select(title="X Axis", options=sorted(pluginoptions), value=pluginoptions[0])
-# y_axis = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptions[0])
-
+facets = sorted(coocc_features.index.levels[0])
 
 def select_facts(coocc_features, x_axis, y_axis):
     logsource = np.log(coocc_features.ix[x_axis][y_axis]+1)
@@ -44,14 +40,13 @@ def select_facts(coocc_features, x_axis, y_axis):
     bins = np.linspace(df.counts.min(), df.counts.max(), 10) # bin labels must be one more than len(colorpalette)
     df["color"] = pd.cut(df.counts, bins, labels = list(reversed(palettes.Blues9)), include_lowest=True)
 
-    selected_x = df.groupby("x").sum().sort_values("counts", ascending=False)[:top_n.value].index.values
-    selected_y = df.groupby("y").sum().sort_values("counts", ascending=False)[:top_n.value].index.values
+    selected_x = df.groupby("x").sum().sort_values("counts", ascending=False)[:top_n].index.values
+    selected_y = df.groupby("y").sum().sort_values("counts", ascending=False)[:top_n].index.values
     selected = df[
         (df.x.isin(selected_x) &
          df.y.isin(selected_y) )
     ]
     return selected
-
 
 def make_plot(x_axis, y_axis):
     selected = select_facts(coocc_features, x_axis, y_axis)
@@ -64,7 +59,7 @@ def make_plot(x_axis, y_axis):
 
     p = Figure(title="", toolbar_location=None,
                x_range=list(set(source.data.get("x"))), y_range=list(set(source.data.get("y"))))
-    p.title.text = "Top %d fact co-occurrences selected" % top_n.value
+    p.title.text = "Top %d fact co-occurrences selected" % top_n
     p.rect(x="x", y="y", source=source, color="color", width=1, height=1)
     p.xaxis.axis_label = x_axis
     p.yaxis.axis_label = y_axis
@@ -75,15 +70,25 @@ def make_plot(x_axis, y_axis):
 
     return p
 
-plots = []
-for x_axis, y_axis in itertools.product(pluginoptions, repeat=2):
-    plots.append(make_plot(x_axis, y_axis))
+def make_datatable():
+    table_columns = [TableColumn(field="x", title="X-axis facts"),
+                     TableColumn(field="y", title="Y-axis facts"),
+                     TableColumn(field="raw", title="Counts")]
+    data_table = DataTable(source=source, columns=table_columns, width=400, height=900)
+    return data_table
 
-grid = gridplot(plots, ncols=2, plot_width=600, plot_height=600)
+def make_arrangement(facets):
+    plots = []
+    for x_axis, y_axis in itertools.product(facets, repeat=2):
+        plots.append(make_plot(x_axis, y_axis))
+    return arrangement
+
+arrangement = make_arrangement
+grid = gridplot(arrangement, ncols=2, plot_width=600, plot_height=600)
 
 # session = push_session(curdoc())
 # script = autoload_server(plot, session_id=session.id)
 
 show(grid)
 output_file(os.path.join(config.resultspath, 'static_heatmap.html'))
-save(obj=grid, filename=os.path.join(config.resultspath, 'static_heatmap.html'), resources=resources.INLINE)
+save(obj=grid, filename=os.path.join(config.resultspath, 'static_heatmap.html'), resources=INLINE)

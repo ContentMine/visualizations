@@ -113,7 +113,9 @@ def get_timeseries_features():
 
 def make_distribution_features():
     df = get_preprocessed_df()
-    dist_raw = df[["firstPublicationDate", "term", "sourcedict"]]
+    dist_raw = df[["firstPublicationDate", "sourcedict"]]
+    dist_features = dist_raw.pivot_table(index="firstPublicationDate", columns=["sourcedict"], aggfunc=len)
+    dist_features.to_pickle(os.path.join(cacheddatapath, "distribution_features.pkl"))
     return dist_features
 
 def get_distribution_features():
