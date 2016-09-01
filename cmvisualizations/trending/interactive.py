@@ -54,7 +54,7 @@ def get_subset(facet):
     return subset
 
 def update(attrname, old, new):
-    subset = get_subset(facet.value)
+    subset = get_subset(facetchooser.value)
     new_absolute_source = subset[0] \
                                         .ix[:, :top_n.value] \
                                         .groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroup.active])) \
@@ -98,17 +98,16 @@ def update(attrname, old, new):
         old.data.update(new.data)
 
 # Create Input controls
-pluginoptions = sorted(ts.columns.levels[0])
 timegroupoptionsmapper = {0:"A", 1:"M", 2:"D"}
 trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
 
 top_n = Slider(title="Number of top-n items to display", value=10, start=1, end=10, step=1)
-facet = Select(title="Facets", options=pluginoptions, value=pluginoptions[1])
+facetchooser = Select(title="Facets", options=facets, value=facets[1])
 timegroup = RadioGroup(labels=timegroupoptions, active=2)
 trending_chooser = RadioGroup(labels=["absolute counts", "period-to-period change"], active=0)
 
-initial_subset = get_subset(facet.value)
+initial_subset = get_subset(facetchooser.value)
 abs_sources = [ColumnDataSource(dict(date=initial_subset[0].index, y=initial_subset[0][l])) for l in initial_subset[0].columns.tolist()[:top_n.value]]
 rel_sources = [ColumnDataSource(dict(date=initial_subset[1].index, y=initial_subset[1][l])) for l in initial_subset[1].columns.tolist()[:top_n.value]]
 abs_point_sources = [ColumnDataSource(dict(date=[initial_subset[0][l].idxmax()],
