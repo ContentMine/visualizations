@@ -6,6 +6,9 @@ and produces dataframes as input for visualizations.
 import pandas as pd
 import numpy as np
 import os
+import pickle
+import itertools
+
 from cmvisualizations import config
 
 ### functions for ingesting from elastic
@@ -90,6 +93,44 @@ def get_coocc_features():
         coocc_features = count_cooccurrences(df)
         coocc_features.to_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
     return coocc_features
+
+def make_subset(coocc_features, x_axis, y_axis):
+    logsource = np.log(coocc_features.ix[x_axis][y_axis]+1)
+    x_sorted = logsource.ix[logsource.sum(axis=1).sort_values(ascending=False).index]
+    y_sorted = x_sorted.T.ix[x_sorted.T.sum(axis=1).sort_values(ascending=False).index]
+    logsource = y_sorted.T.ix[:25, :25]
+    n_cols = len(logsource.columns)
+    n_rows = len(logsource.index)
+    df = pd.DataFrame()
+    df["x"] = list(itertools.chain.from_iterable(list(itertools.repeat(i, times=n_cols)) for i in logsource.index))
+    df["y"] = list(itertools.chain.from_iterable(list(itertools.repeat(logsource.stack().index.levels[1].values, times=n_rows))))
+    df["counts"] = logsource.stack().values
+    df["raw"] = df["counts"].map(np.exp)-1
+    df.sort_values("counts", ascending=False, inplace=True)
+
+    new_axis_factors = logsource.index.values.tolist()
+
+    return df, new_axis_factors, new_axis_factors
+
+def prepare_facts():
+    coocc_features = get_coocc_features()
+    facets = sorted(coocc_features.index.levels[0])
+    factsets = {}
+    for facet in facets:
+        subset = make_subset(coocc_features, facet, facet)
+        factsets[(facet, facet)] = subset
+    return factsets
+
+def get_coocc_factsets():
+    try:
+        with open(os.path.join(cacheddatapath, "coocc_factsets.pkl"), "rb") as infile:
+            coocc_factsets = pickle.load(infile)
+    except:
+        coocc_factsets = prepare_facts()
+        with open(os.path.join(cacheddatapath, "coocc_factsets.pkl"), "wb") as outfile:
+            pickle.dump(coocc_factsets, outfile)
+    return coocc_factsets
+
 
 def get_timeseries_pivot(df):
     ts_raw = df[["firstPublicationDate", "term", "sourcedict"]]

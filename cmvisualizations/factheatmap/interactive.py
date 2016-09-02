@@ -23,53 +23,25 @@ from cmvisualizations.preprocessing import preprocessing
 from cmvisualizations import config
 
 
-coocc_features = preprocessing.get_coocc_features()
+factsets = preprocessing.get_coocc_factsets()
 
 # Create Input controls
-pluginoptions = sorted(coocc_features.index.levels[0])
+pluginoptions = sorted([f[0] for f in list(factsets.keys())])
 top_n = Slider(title="Number of top-n items to display", value=10, start=5, end=25, step=5)
-x_axis_selector = Select(title="X Axis", options=sorted(pluginoptions), value=pluginoptions[2])
-y_axis_selector = Select(title="Y Axis", options=sorted(pluginoptions), value=pluginoptions[1])
+facet_selector = Select(title="Facet", options=sorted(pluginoptions), value=pluginoptions[2])
 
 
-def prepare_facts(facets):
-    factsets = {}
-    for x_axis, y_axis in itertools.product(facets, repeat=2):
-        subset = make_subset(coocc_features, x_axis, y_axis)
-        factsets[(x_axis, y_axis)] = subset
-    return factsets
-
-def make_subset(coocc_features, x_axis, y_axis):
-    logsource = np.log(coocc_features.ix[x_axis][y_axis]+1)
-    x_sorted = logsource.ix[logsource.sum(axis=1).sort_values(ascending=False).index]
-    y_sorted = x_sorted.T.ix[x_sorted.T.sum(axis=1).sort_values(ascending=False).index]
-    logsource = y_sorted.T.ix[:top_n.end, :top_n.end]
-    n_cols = len(logsource.columns)
-    n_rows = len(logsource.index)
-    df = pd.DataFrame()
-    df["x"] = list(itertools.chain.from_iterable(list(itertools.repeat(i, times=n_cols)) for i in logsource.index))
-    df["y"] = list(itertools.chain.from_iterable(list(itertools.repeat(logsource.stack().index.levels[1].values, times=n_rows))))
-    df["counts"] = logsource.stack().values
-    df["raw"] = df["counts"].map(np.exp)-1
-    df.sort_values("counts", ascending=False, inplace=True)
-    bins = np.linspace(df.counts.min(), df.counts.max(), 10) # bin labels must be one more than len(colorpalette)
-    df["color"] = pd.cut(df.counts, bins, labels = list(reversed(palettes.Blues9)), include_lowest=True)
-
-    new_x_factors = logsource.index.values.tolist()
-    new_y_factors = logsource.columns.values.tolist()
-
-    return df, new_x_factors, new_y_factors
-
-factsets = prepare_facts(pluginoptions)
 
 def get_subset(x_axis, y_axis):
     return factsets.get((x_axis, y_axis))
 
 def update(attrname, old, new):
-    new_selected, new_x_factors, new_y_factors = get_subset(x_axis_selector.value, y_axis_selector.value)
+    new_selected, new_x_factors, new_y_factors = get_subset(facet_selector.value, facet_selector.value)
+    bins = np.linspace(new_selected.counts.min(), new_selected.counts.max(), 10) # bin labels must be one more than len(colorpalette)
+    new_selected["color"] = pd.cut(new_selected.counts, bins, labels = list(reversed(palettes.Blues9)), include_lowest=True)
 
-    p.xaxis.axis_label = x_axis_selector.value
-    p.yaxis.axis_label = y_axis_selector.value
+    p.xaxis.axis_label = facet_selector.value
+    p.yaxis.axis_label = facet_selector.value
     p.title.text = "Top %d fact co-occurrences selected" % top_n.value
 
     src = ColumnDataSource(dict(
@@ -83,13 +55,14 @@ def update(attrname, old, new):
     p.y_range.update(factors=new_y_factors[:top_n.value])
 
 source = ColumnDataSource(data=dict(x=[], y=[], color=[], raw=[]))
-selected, new_x_factors, new_y_factors = get_subset(x_axis_selector.value, y_axis_selector.value)
+selected, new_x_factors, new_y_factors = get_subset(facet_selector.value, facet_selector.value)
 
 TOOLS="tap, box_select, reset"
 
 p = Figure(plot_height=700, plot_width=700, title="",
            tools=TOOLS, toolbar_location="above",
            x_range=new_x_factors[:top_n.value],  y_range=new_y_factors[:top_n.value])
+update(None, None, None) # initial load of the data
 p.rect(x="x", y="y", source=source, color="color", width=0.95, height=0.95, name="glyphs")
 p.xaxis.major_label_orientation = np.pi/4
 p.yaxis.major_label_orientation = np.pi/4
@@ -106,22 +79,17 @@ table_columns = [TableColumn(field="x", title="X-axis facts"),
 data_table = DataTable(source=source, columns=table_columns, width=400, height=600)
 
 
-controls = [top_n, x_axis_selector, y_axis_selector]
+controls = [top_n, facet_selector]
 for control in controls:
     control.on_change('value', update)
 
-update(None, None, None) # initial load of the data
 
 ### LAYOUT
 
-content_filename = os.path.join(os.path.dirname(__file__), "description.html")
-
+content_filename = os.path.join(os.path.abspath(os.path.dirname("__file__")), "description.html")
 description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
-
 
 inputs = row(*controls)
 layout = column(inputs, row(p, data_table))
-curdoc().add_root(column(description, layout))
 curdoc().title = "Exploring co-occurrences of fact between facets"
-
-show(curdoc())
+curdoc().add_root(column(description, layout))
