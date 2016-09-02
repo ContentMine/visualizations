@@ -51,7 +51,6 @@ def preprocess():
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
     df["sourcedict"] = get_aspect(df)
     df["term"] = df["term"].map(str.lower)
-    df.to_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
     return df
 
 def get_preprocessed_df():
@@ -59,71 +58,78 @@ def get_preprocessed_df():
         df = pd.read_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
     except:
         df = preprocess()
+        df.to_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
     return df
 
 
 ## functions to extract features
 
-def count_occurrences():
-    df = get_preprocessed_df()
+def count_occurrences(df):
     # replace pmcid by doi ideally
     groups = df[["pmcid", "term"]].groupby("term").groups
     return groups
 
-def get_coocc_pivot():
-    df = get_preprocessed_df()
+def get_coocc_pivot(df):
     coocc_raw = df[["cprojectID", "term", "sourcedict"]]
     coocc_pivot = coocc_raw.pivot_table(index=["sourcedict", 'term'], columns='cprojectID', aggfunc=len)
     return coocc_pivot
 
-def count_cooccurrences():
-    df = get_coocc_pivot()
-    labels = df.index
-    M = np.matrix(df.fillna(0))
+def count_cooccurrences(df):
+    coocc_pivot = get_coocc_pivot(df)
+    labels = coocc_pivot.index
+    M = np.matrix(coocc_pivot.fillna(0))
     C = np.dot(M, M.T)
-    coocc = pd.DataFrame(data=C, index=labels, columns=labels)
-    coocc.to_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
-    return coocc
+    coocc_features = pd.DataFrame(data=C, index=labels, columns=labels)
+    return coocc_features
 
 def get_coocc_features():
     try:
         coocc_features = pd.read_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
     except:
-        coocc_features = count_cooccurrences()
+        df = get_preprocessed_df()
+        coocc_features = count_cooccurrences(df)
+        coocc_features.to_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
     return coocc_features
 
-def get_timeseries_pivot():
-    df = get_preprocessed_df()
+def get_timeseries_pivot(df):
     ts_raw = df[["firstPublicationDate", "term", "sourcedict"]]
     ts_pivot = ts_raw.pivot_table(index='firstPublicationDate', columns=["sourcedict", "term"], aggfunc=len)
     return ts_pivot
 
-def make_timeseries():
-    ts = get_timeseries_pivot()
+def make_timeseries(df):
+    ts = get_timeseries_pivot(df)
     ts.index = pd.to_datetime(ts.index)
-    ts.to_pickle(os.path.join(cacheddatapath, "timeseries_features.pkl"))
     return ts
 
 def get_timeseries_features():
     try:
         ts_features = pd.read_pickle(os.path.join(cacheddatapath, "timeseries_features.pkl"))
     except:
-        ts_features = make_timeseries()
+        df = get_preprocessed_df()
+        ts_features = make_timeseries(df)
+        ts_features.to_pickle(os.path.join(cacheddatapath, "timeseries_features.pkl"))
     return ts_features
 
-def make_distribution_features():
-    df = get_preprocessed_df()
+def make_distribution_features(df):
     dist_raw = df[["firstPublicationDate", "sourcedict"]]
     dist_features = dist_raw.pivot_table(index="firstPublicationDate", columns=["sourcedict"], aggfunc=len)
-    dist_features.to_pickle(os.path.join(cacheddatapath, "distribution_features.pkl"))
     return dist_features
 
 def get_distribution_features():
     try:
         dist_features = pd.read_pickle(os.path.join(cacheddatapath, "dist_features.pkl"))
     except:
-        dist_features = make_distribution_features()
+        df = get_preprocessed_df()
+        dist_features = make_distribution_features(df)
+        dist_features.to_pickle(os.path.join(cacheddatapath, "distribution_features.pkl"))
     return dist_features
+
+def get_single_fact(df, fact):
+    fact_df = df[df["term"] == fact]
+    return fact_df
+
+def get_facts_from_list(df, factlist):
+    return pd.concat((get_single_fact(df, f) for f in factlist))
 
 
 ####
