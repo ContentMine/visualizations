@@ -1,1 +1,1 @@
-web: bokeh serve cmvisualizations/composer.py
+web: bokeh serve cmvisualizations/factheatmap/interactive.py
