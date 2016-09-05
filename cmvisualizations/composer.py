@@ -17,14 +17,14 @@ from bokeh.resources import INLINE, CDN
 
 from flask import Flask, render_template, request, redirect
 
-import distributions.interactive as dist
-import trending.interactive as trend
-import factexplorer.interactive as factex
+# import distributions.interactive as dist
+# import trending.interactive as trend
+# import factexplorer.interactive as factex
 import factheatmap.interactive as fheat
 
-layout1 = dist.layout
-layout2 = trend.layout
-layout3 = factex.layout
+# layout1 = dist.layout
+# layout2 = trend.layout
+# layout3 = factex.layout
 layout4 = fheat.layout
 
 script, div = components(layout4)
@@ -38,7 +38,7 @@ def main():
 
 @app.route('/index')
 def index():
-  return render_template('index.html')
+  return render_template('graph.html', script=script, div=div)
 
 if __name__ == '__main__':
     app.run(port=33507)

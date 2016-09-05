@@ -19,8 +19,8 @@ import bokeh.resources as resources
 import itertools
 import pickle
 
-from cmvisualizations.preprocessing import preprocessing
-from cmvisualizations import config
+from preprocessing import preprocessing
+import config
 
 
 with open("coocc_factsets.pkl", "rb") as infile:
@@ -87,10 +87,10 @@ for control in controls:
 
 ### LAYOUT
 
-content_filename = "description.html"
-description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
+# content_filename = "description.html"
+# description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
 
 inputs = row(*controls)
-layout = column(description, column(inputs, row(p, data_table)))
+layout = column(inputs, row(p, data_table))
 curdoc().title = "Exploring co-occurrences of fact between facets"
 curdoc().add_root(layout)
