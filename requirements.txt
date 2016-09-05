@@ -3,7 +3,6 @@ backports.shutil-get-terminal-size==1.0.0
 beautifulsoup4==4.4.1
 bokeh==0.12.1
 click==6.6
-cmvisualizations==0.0.2.dev0
 cycler==0.10.0
 decorator==4.0.9
 ecdsa==0.13
