@@ -18,12 +18,14 @@ import bokeh.palettes as palettes
 import bokeh.resources as resources
 
 import itertools
+import pickle
 
 from cmvisualizations.preprocessing import preprocessing
 from cmvisualizations import config
 
 
-factsets = preprocessing.get_coocc_factsets()
+with open("coocc_factsets.pkl", "rb") as infile:
+    factsets = pickle.load(infile)
 
 # Create Input controls
 pluginoptions = sorted([f[0] for f in list(factsets.keys())])
@@ -86,7 +88,7 @@ for control in controls:
 
 ### LAYOUT
 
-content_filename = os.path.join("factheatmap", "description.html")
+content_filename = "description.html"
 description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
 
 inputs = row(*controls)
