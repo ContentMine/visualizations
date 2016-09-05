@@ -7,15 +7,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from bokeh.layouts import column, row
-from bokeh.plotting import Figure, show
-from bokeh.models import ColumnDataSource, HoverTool
-from bokeh.models.widgets import Slider, Select, TextInput, RadioGroup, Paragraph, Div
+from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource, HoverTool, Legend
+from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn, Paragraph, Div, RadioGroup, Button
 from bokeh.io import curdoc, output_notebook, output_file, save
-from bokeh.charts import HeatMap, bins, vplot
+from bokeh.charts import HeatMap, bins, vplot, TimeSeries
 from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTool, ResetTool
 
 import bokeh.palettes as palettes
-import bokeh.resources as resources
+from bokeh.resources import INLINE, CDN
 
 import itertools
 
@@ -23,104 +23,89 @@ from cmvisualizations.preprocessing import preprocessing
 from cmvisualizations import config
 
 
+# setup
+
+resources = INLINE
+colors=palettes.Dark2_8
+
+
+# load initial data
+
 df = preprocessing.get_preprocessed_df()
 
-# Create Input controls
-
-desired_facts = TextInput()
 
 # Create Input controls
+
+text_input = TextInput(value="erlotinib, zika, myopathy, retinitis",
+                        title="Enter up to 8 comma separated facts:", width=600)
+go_button = Button(label="Update", width=70)
+
 timegroupoptionsmapper = {0:"A", 1:"M", 2:"D"}
+trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
 timegroup = RadioGroup(labels=timegroupoptions, active=2)
 
-
 def get_ts_data():
-    text_inputs = desired_facts.value.split(",")
-    sub_dfs = [preprocessing.get_facts_from_list(df, input_) for text_input in text_inputs]
-    ts = [preprocessing.make_timeseries(sub_df) for sub_df in sub_dfs]
+    requested_facts = text_input.value.split(",")[:8]
+    requested_facts = [f.strip() for f in requested_facts]
+    req_df = preprocessing.get_facts_from_list(df, requested_facts)
+    ts = preprocessing.make_timeseries(req_df)
+    ts.columns = ts.columns.droplevel(0)
+    ts = ts.groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroup.active])).sum()
     return ts
 
 
-def update_ts(attrname, old, new):
-    ts = get_ts_data()
-    new_ts = ts.groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroup.active])).sum().fillna(0)
+def update():
+    new_data = get_ts_data()
+    new_columns = new_data.columns.tolist()
+    new_data.columns = [str(r) for r in list(range(0,len(new_columns)))]
+    empty_nr = 8 - len(new_columns)
 
-    new_ts_sources = ColumnDataSource(new_ts)
-    for old, new in zip(ts_sources, new_ts_sources):
-        old.data.update(new.data)
+    new_legends = []
+    for j, new_col in enumerate(new_data.columns):
+        new_source = ColumnDataSource(dict(x=new_data[new_col].index,
+                                           y=new_data[new_col].values))
+        rend = fig.renderers[4:-1][j]
+        rend.data_source.data=new_source.data
+        new_legends.append((str(new_columns[j]), [rend]))
+    fig.legend[0].update(legends=new_legends)
+    for j in range(empty_nr, 8):
+        new_source = ColumnDataSource(dict(x=[],
+                                           y=[]))
+        rend = fig.renderers[4:-1][j]
+        rend.data_source.data=new_source.data
 
-    new_ts_point_sources = [ColumnDataSource(dict(date=[new_ts[l].idxmax()],
-                                                   y=[new_ts[l].max()],
-                                                   text=[str(int(new_ts[l].max()))]
-                                                   )
-                                              )
-                                              for l in new_ts.columns.tolist()]
+fig = figure(title=None, toolbar_location=None, tools=[],
+           x_axis_type="datetime",
+           width=600, height=300)
+legends = []
+for i in range(0,8):
+    l = fig.line(x=[], y=[],
+             color=colors[i])
+    legends.append((str(i), [l]))
 
-    for old, new in zip(ts_point_sources, new_ts_point_sources):
-        old.data.update(new.data)
+fig.legend.background_fill_alpha = 0
+fig.background_fill_color = "whitesmoke"
 
-for desired_fact in desired_facts:
-    desired_fact.on_change("value", update_ts)
+legend = Legend(legends=legends, location=(0, 0))
 
-ts_sources = [ColumnDataSource(dict(date=initial_subset[0].index, y=initial_subset[0][l])) for l in initial_subset[0].columns.tolist()]
-ts_point_sources = [ColumnDataSource(dict(date=[initial_subset[0][l].idxmax()],
-                                           y=[initial_subset[0][l].max()],
-                                           text=[str(int(initial_subset[0][l].max()))]
-                                           )
-                                      )
-                                      for l in initial_subset[0].columns.tolist()[:top_n.value]]
+fig.add_layout(legend, "right")
 
-def make_plots(linesources, pointsources):
-    plots = []
-    i=0
-    for linesource, pointsource in zip(linesources, pointsources):
-        fig = Figure(title=None, toolbar_location=None, tools=[],
-                   x_axis_type="datetime",
-                   width=300, height=90)
 
-        fig.xaxis.visible = False
-        if i in [0, 9] :
-            fig.xaxis.visible = True
-            fig.height = 110
-        fig.yaxis.visible = False
-        fig.xgrid.visible = True
-        fig.ygrid.visible = False
-        fig.min_border_left = 10
-        fig.min_border_right = 10
-        fig.min_border_top = 10
-        fig.min_border_bottom = 10
-        if not i in [0, 9]:
-            fig.xaxis.major_label_text_font_size = "0pt"
-        #fig.yaxis.major_label_text_font_size = "0pt"
-        fig.xaxis.major_tick_line_color = None
-        fig.yaxis.major_tick_line_color = None
-        fig.xaxis.minor_tick_line_color = None
-        fig.yaxis.minor_tick_line_color = None
-        fig.background_fill_color = "whitesmoke"
+controls = [text_input, go_button]
+go_button.on_click(update)
+#timegroup.on_change("value", update)
 
-        fig.line(x='date', y="y", source=linesource)
-        fig.circle(x='date', y='y', size=5, source=pointsource)
-        fig.text(x='date', y='y', text='text', y_offset=20, text_font_size='7pt', source=pointsource)
-
-        fig.title.align = 'left'
-        fig.title.text_font_style = 'normal'
-
-        plots.append(fig)
-        i+=1
-    return plots
-
-ts_arrangement = make_plots(ts_sources, ts_point_sources)
-
-controls = [desired_facts, timegroup]
-
-inputs = row(*controls)
-
+# initial update
+update()
 
 ### LAYOUT
 
-content_filename = os.path.join(os.path.dirname(__file__), "description.html")
-description = Div(text=open(content_filename).read(), render_as_text=False, width=900)
+content_filename = "description.html"
+description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
 
-layout = column(description, inputs, row(column(ts_arrangement)))
+
+inputs = row(*controls)
+layout = column(description, column(inputs, fig))
 curdoc().add_root(layout)
+curdoc().title = "Exploring co-occurrences of fact between facets"
