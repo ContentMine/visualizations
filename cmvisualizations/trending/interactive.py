@@ -175,7 +175,7 @@ update(None, None, None) # initial load of the data
 
 ### LAYOUT
 
-content_filename = os.path.join(os.path.abspath(os.path.dirname("__file__")), "description.html")
+content_filename = os.path.join("trending", "description.html")
 description = Div(text=open(content_filename).read(), render_as_text=False, width=900)
 
 layout = column(description, inputs, row(column(abs_arrangement), column(rel_arrangement)))

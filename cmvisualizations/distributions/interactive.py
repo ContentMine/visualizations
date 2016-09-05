@@ -55,7 +55,7 @@ ts_share.tools[2].reset_size=False
 
 ### LAYOUT
 
-content_filename = os.path.join(os.path.dirname(__file__), "description.html")
+content_filename = os.path.join("distributions", "description.html")
 description = Div(text=open(content_filename).read(), render_as_text=False, width=900)
 
 layout = column(description, ts_abs, ts_share)

@@ -69,7 +69,7 @@ def update():
         rend.data_source.data=new_source.data
         new_legends.append((str(new_columns[j]), [rend]))
     fig.legend[0].update(legends=new_legends)
-    for j in range(empty_nr, 8):
+    for j in range(empty_nr-1, 8):
         new_source = ColumnDataSource(dict(x=[],
                                            y=[]))
         rend = fig.renderers[4:-1][j]
@@ -101,7 +101,7 @@ update()
 
 ### LAYOUT
 
-content_filename = "description.html"
+content_filename = os.path.join("factexplorer", "description.html")
 description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
 
 
