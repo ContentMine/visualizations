@@ -28,6 +28,8 @@ applet_url = "http://localhost:5050"
 
 # import factheatmap.interactive as fheat
 
+logger.info('socket: {0}'.format(socket.gethostbyname(socket.gethostname())))
+
 @app.route('/')
 def main():
     return redirect('/index')
@@ -36,7 +38,6 @@ def main():
 def applet():
     session = pull_session(url=bokeh_url, app_path="/interactive")
     logger.info('session id: {0}'.format(session.id))
-    logger.info('socket: {0}'.format(socket.gethostbyname(socket.gethostname())))
     # session.pull()
     # session.loop_until_closed()
     script = autoload_server(None, session_id=session.id, app_path="/interactive")
@@ -48,4 +49,4 @@ def applet():
     )
 
 if __name__ == '__main__':
-    app.run(port=8000)
+    app.run(port=33507)
