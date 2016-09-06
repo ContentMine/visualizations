@@ -30,15 +30,25 @@ layout4 = fheat.layout
 script, div = components(layout4)
 
 
-app = Flask(__name__)
+#################
+# BOKEH SERVER
+#################
 
-@app.route('/')
-def main():
-  return redirect('/index')
+curdoc().add_root(layout4)
 
-@app.route('/index')
-def index():
-  return render_template('simple.html', script=script, div=div)
+#################
+# FLASK SERVER
+#################
 
-if __name__ == '__main__':
-    app.run(port=33507)
+# app = Flask(__name__)
+#
+# @app.route('/')
+# def main():
+#   return redirect('/index')
+#
+# @app.route('/index')
+# def index():
+#   return render_template('simple.html', script=script, div=div)
+#
+# if __name__ == '__main__':
+#     app.run(port=33507)
