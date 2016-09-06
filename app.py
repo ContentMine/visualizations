@@ -10,10 +10,11 @@ logging.basicConfig(level=logging.INFO)
 
 from flask import Flask, render_template, request, redirect
 from bokeh.embed import components, autoload_server
+from bokeh.client.session import pull_session, push_session
 
 app = Flask('contentmine-demo')
 
-bokeh_url = "http://localhost:5006/interactive"
+bokeh_url = "http://localhost:5006"
 applet_url = "http://localhost:5050"
 
 # import factheatmap.interactive as fheat
@@ -24,14 +25,15 @@ def main():
 
 @app.route("/index")
 def applet():
-    # script, div = components(fheat.layout)
-    script = autoload_server(None, app_path="/interactive")
+    session = pull_session(url=bokeh_url, app_path="/interactive")
+    # session.pull()
+    # session.loop_until_closed()
+    script = autoload_server(None, session_id=session.id, app_path="/interactive")
     return render_template(
         "simple.html",
         script = script,
         # div = div,
-        # app_url = bokeh_url,
-        app_tag = "CM Factexplorer"
+        # app_url = bokeh_url+"/interactive"
     )
 
 if __name__ == '__main__':
