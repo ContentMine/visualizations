@@ -9,7 +9,7 @@ import os
 import pickle
 import itertools
 
-from cmvisualizations import config
+import config
 
 ### functions for ingesting from elastic
 
@@ -63,6 +63,22 @@ def get_preprocessed_df():
         df = preprocess()
         df.to_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
     return df
+
+
+def make_series(df, column):
+    series = df[["firstPublicationDate", "sourcedict", column]]
+    #series.index = pd.to_datetime(df["firstPublicationDate"])
+    return series
+
+def get_series(column):
+    try:
+        series = pd.read_pickle(os.path.join(cacheddatapath, column+"_series.pkl"))
+    except:
+        df = get_preprocessed_df()
+        series = make_series(df, column)
+        series.to_pickle(os.path.join(cacheddatapath, column+"_series.pkl"))
+    return series
+
 
 
 ## functions to extract features
