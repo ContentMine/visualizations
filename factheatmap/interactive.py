@@ -87,8 +87,6 @@ for control in controls:
 
 ### LAYOUT
 
-# content_filename = "description.html"
-# description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
 
 inputs = row(*controls)
 layout = column(inputs, row(p, data_table))

@@ -19,9 +19,8 @@ from bokeh.resources import INLINE, CDN
 
 import itertools
 
-from cmvisualizations.preprocessing import preprocessing
-from cmvisualizations import config
-
+from preprocessing import preprocessing
+import config
 
 # setup
 
@@ -31,7 +30,7 @@ colors=palettes.Dark2_8
 
 # load initial data
 
-df = preprocessing.get_preprocessed_df()
+df = preprocessing.get_series("term")
 
 
 # Create Input controls
@@ -44,6 +43,14 @@ timegroupoptionsmapper = {0:"A", 1:"M", 2:"D"}
 trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
 timegroup = RadioGroup(labels=timegroupoptions, active=2)
+
+
+# def get_single_fact(series, fact):
+#     fact_series = series[series == fact]
+#     return fact_series
+#
+# def get_facts_from_list(series, factlist):
+#     return pd.concat((get_single_fact(series, f) for f in factlist))
 
 def get_ts_data():
     requested_facts = text_input.value.split(",")[:8]
@@ -101,11 +108,8 @@ update()
 
 ### LAYOUT
 
-content_filename = os.path.join("factexplorer", "description.html")
-description = Div(text=open(content_filename).read(), render_as_text=False, width=600)
-
 
 inputs = row(*controls)
-layout = column(description, column(inputs, fig))
+layout = column(inputs, fig)
 curdoc().add_root(layout)
 curdoc().title = "Exploring co-occurrences of fact between facets"
