@@ -21,11 +21,13 @@ from bokeh.resources import INLINE, CDN
 
 from itertools import chain, repeat
 
-from cmvisualizations.preprocessing import preprocessing
-from cmvisualizations import config
+from preprocessing import preprocessing
+import config
+import pickle
 
+with open("distribution_features.pkl", "rb") as infile:
+    dist = pickle.load(infile)
 
-dist = preprocessing.get_distribution_features()
 share = (dist.T / dist.sum(axis=1)).T
 #dist["date"] = dist.index
 facets = sorted(dist.columns.tolist())

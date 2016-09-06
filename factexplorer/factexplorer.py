@@ -22,16 +22,17 @@ import itertools
 from preprocessing import preprocessing
 import config
 
+import pickle
+
 # setup
 
 resources = INLINE
 colors=palettes.Dark2_8
 
-
 # load initial data
 
-df = preprocessing.get_series("term")
-
+with open("term_series.pkl", "rb") as infile:
+    df = pickle.load(infile)
 
 # Create Input controls
 

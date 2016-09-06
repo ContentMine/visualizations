@@ -21,10 +21,13 @@ from bokeh.resources import INLINE, CDN
 
 from itertools import chain, repeat
 
-from cmvisualizations.preprocessing import preprocessing
-from cmvisualizations import config
+from preprocessing import preprocessing
+import config
+import pickle
 
-ts = preprocessing.get_timeseries_features()
+with open("timeseries_features.pkl", "rb") as infile:
+    ts = pickle.load(infile)
+
 facets = sorted(ts.columns.levels[0])
 resources = INLINE
 colors=palettes.Paired10
