@@ -23,7 +23,7 @@ from preprocessing import preprocessing
 import config
 
 
-with open("coocc_factsets.pkl", "rb") as infile:
+with open("data/coocc_factsets.pkl", "rb") as infile:
     factsets = pickle.load(infile)
 
 # Create Input controls
