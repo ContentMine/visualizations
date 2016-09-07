@@ -24,11 +24,6 @@ sh_out.setFormatter(formatter)
 logger.addHandler(sh_out)
 
 bokeh_url = "http://localhost:5006"
-applet_url = "http://localhost:5050"
-
-# import factheatmap.interactive as fheat
-
-logger.info('socket: {0}'.format(socket.gethostbyname(socket.gethostname())))
 
 @app.route('/')
 def main():
@@ -36,11 +31,11 @@ def main():
 
 @app.route("/index")
 def applet():
-    session = pull_session(url=bokeh_url, app_path="/interactive")
+    session = pull_session(url=bokeh_url, app_path="/cooccurrences")
     logger.info('session id: {0}'.format(session.id))
     # session.pull()
     # session.loop_until_closed()
-    script = autoload_server(None, session_id=session.id, app_path="/interactive")
+    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences")
     return render_template(
         "simple.html",
         script = script,
