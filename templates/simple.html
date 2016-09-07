@@ -14,13 +14,12 @@
         <!-- <script>
             window._bokeh_onload_callbacks = [window.StockApp.main];
         </script> -->
-        <!-- <script src="{{ app_url }}"></script> -->
     </head>
     <body>
         ContentMine DemoApp
         <div class=page>
           {{ script | safe }}
-          <!-- {{ div | safe }} -->
+          {{ app_tag }}
         </div>
     </body>
 </html>

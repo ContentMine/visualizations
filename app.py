@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 from flask import Flask, render_template, request, redirect
 from bokeh.embed import components, autoload_server
-from bokeh.client.session import pull_session, push_session
+from bokeh.client.session import pull_session, push_session, ClientSession
 
 app = Flask('contentmine-demo')
 
@@ -23,24 +23,48 @@ formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
 sh_out.setFormatter(formatter)
 logger.addHandler(sh_out)
 
-bokeh_url = "http://localhost:5006"
 
 @app.route('/')
 def main():
-    return redirect('/index')
+    return redirect('/trending')
 
-@app.route("/index")
-def applet():
-    session = pull_session(url=bokeh_url, app_path="/cooccurrences")
-    logger.info('session id: {0}'.format(session.id))
-    # session.pull()
-    # session.loop_until_closed()
+@app.route("/cooccurrences")
+def cooccurrences():
+    session = pull_session(url="http://localhost:5006/cooccurrences")
     script = autoload_server(None, session_id=session.id, app_path="/cooccurrences")
     return render_template(
         "simple.html",
         script = script,
-        # div = div,
-        # app_url = bokeh_url+"/interactive"
+        app_tag = "cooccurrences"
+    )
+@app.route("/trending")
+def trending():
+    session = pull_session(url="http://localhost:5006/trending")
+    script = autoload_server(None, session_id=session.id, app_path="/trending")
+    return render_template(
+        "simple.html",
+        script = script,
+        app_tag = "trending"
+    )
+
+@app.route("/dictionaries")
+def dictionaries():
+    session = pull_session(url="http://localhost:5006/dictionaries")
+    script = autoload_server(None, session_id=session.id, app_path="/dictionaries")
+    return render_template(
+        "simple.html",
+        script = script,
+        app_tag = "dictionaries"
+    )
+
+@app.route("/factexplorer")
+def factexplorer():
+    session = pull_session(url="http://localhost:5006/factexplorer")
+    script = autoload_server(None, session_id=session.id, app_path="/factexplorer")
+    return render_template(
+        "simple.html",
+        script = script,
+        app_tag = "factexplorer"
     )
 
 if __name__ == '__main__':
