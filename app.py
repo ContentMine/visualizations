@@ -28,8 +28,8 @@ logger.addHandler(sh_out)
 
 
 bokeh_process = subprocess.Popen(
-    ['bokeh', 'serve', '--port=5100',
-            '--host=0.0.0.0:5000', '--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000', 
+    ['bokeh', 'serve', '--port=5006',
+            '--host=0.0.0.0:5000', '--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000',
             'cooccurrences/cooccurrences.py', 'trending/trending.py', 'factexplorer/factexplorer.py', 'dictionaries/dictionaries.py'], stdout=subprocess.PIPE)
 
 # worker: bokeh serve cooccurrences/cooccurrences.py trending/trending.py factexplorer/factexplorer.py dictionaries/dictionaries.py --port=5100 --host=contentmine-demo.herokuapp.com --host=localhost:5006  --address=0.0.0.0 --use-xheaders --allow-websocket-origin=contentmine-demo.herokuapp.com --host=localhost:5100 --host=localhost:5000 --allow-websocket-origin=127.0.0.1:5000 --allow-websocket-origin=0.0.0.0:5000 --host=127.0.0.1
@@ -44,8 +44,8 @@ def main():
 
 @app.route("/cooccurrences")
 def cooccurrences():
-    session = pull_session(url="http://0.0.0.0:5100/cooccurrences")
-    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://0.0.0.0:5100")
+    session = pull_session(url="http://0.0.0.0:5006/cooccurrences")
+    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://0.0.0.0:5006")
     return render_template(
         "simple.html",
         script = script,
@@ -53,8 +53,8 @@ def cooccurrences():
     )
 @app.route("/trending")
 def trending():
-    session = pull_session(url="http://0.0.0.0:5100/trending")
-    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://0.0.0.0:5100")
+    session = pull_session(url="http://0.0.0.0:5006/trending")
+    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://0.0.0.0:5006")
     return render_template(
         "simple.html",
         script = script,
@@ -63,8 +63,8 @@ def trending():
 
 @app.route("/dictionaries")
 def dictionaries():
-    session = pull_session(url="http://0.0.0.0:5100/dictionaries")
-    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://0.0.0.0:5100")
+    session = pull_session(url="http://0.0.0.0:5006/dictionaries")
+    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://0.0.0.0:5006")
     return render_template(
         "simple.html",
         script = script,
@@ -73,8 +73,8 @@ def dictionaries():
 
 @app.route("/factexplorer")
 def factexplorer():
-    session = pull_session(url="http://0.0.0.0:5100/factexplorer")
-    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://0.0.0.0:5100")
+    session = pull_session(url="http://0.0.0.0:5006/factexplorer")
+    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://0.0.0.0:5006")
     return render_template(
         "simple.html",
         script = script,
