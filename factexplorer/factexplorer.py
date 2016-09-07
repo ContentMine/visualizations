@@ -4,7 +4,6 @@ import os
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 from bokeh.layouts import column, row
 from bokeh.plotting import figure, show
