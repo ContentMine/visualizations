@@ -28,7 +28,8 @@ logger.addHandler(sh_out)
 
 
 bokeh_process = subprocess.Popen(
-    ['bokeh', 'serve','--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000', '--port=5100',
+    ['bokeh', 'serve', '--port=5100',
+            '--host=0.0.0.0:5000', '--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000', 
             'cooccurrences/cooccurrences.py', 'trending/trending.py', 'factexplorer/factexplorer.py', 'dictionaries/dictionaries.py'], stdout=subprocess.PIPE)
 
 # worker: bokeh serve cooccurrences/cooccurrences.py trending/trending.py factexplorer/factexplorer.py dictionaries/dictionaries.py --port=5100 --host=contentmine-demo.herokuapp.com --host=localhost:5006  --address=0.0.0.0 --use-xheaders --allow-websocket-origin=contentmine-demo.herokuapp.com --host=localhost:5100 --host=localhost:5000 --allow-websocket-origin=127.0.0.1:5000 --allow-websocket-origin=0.0.0.0:5000 --host=127.0.0.1
