@@ -35,7 +35,8 @@ while True:
         # they would listen to the same port, so we need to iterate up on the port number
         bokeh_process = subprocess.Popen(
             ['bokeh', 'serve', '--port={0}'.format(str(port)), '--log-level=debug',
-                    '--host=0.0.0.0:5000', '--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000',
+                    '--host=0.0.0.0:5000', '--host=0.0.0.0:{0}'.format(str(port)),
+                    '--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000',
                     'cooccurrences/cooccurrences.py', 'trending/trending.py', 'factexplorer/factexplorer.py', 'dictionaries/dictionaries.py'], stdout=subprocess.PIPE)
         break
     except:
