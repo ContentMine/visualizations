@@ -26,11 +26,20 @@ formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
 sh_out.setFormatter(formatter)
 logger.addHandler(sh_out)
 
+port = 5006
 
-bokeh_process = subprocess.Popen(
-    ['bokeh', 'serve', '--port=5006',
-            '--host=0.0.0.0:5000', '--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000',
-            'cooccurrences/cooccurrences.py', 'trending/trending.py', 'factexplorer/factexplorer.py', 'dictionaries/dictionaries.py'], stdout=subprocess.PIPE)
+while True:
+    try:
+        # this is necessary because in the current implementation, gunicorn starts multiple processes for this app;
+        # this means also multiple bokeh servers
+        # they would listen to the same port, so we need to iterate up on the port number
+        bokeh_process = subprocess.Popen(
+            ['bokeh', 'serve', '--port={0}'.format(str(port)),
+                    '--host=0.0.0.0:5000', '--allow-websocket-origin=localhost:5000', '--allow-websocket-origin=0.0.0.0:5000',
+                    'cooccurrences/cooccurrences.py', 'trending/trending.py', 'factexplorer/factexplorer.py', 'dictionaries/dictionaries.py'], stdout=subprocess.PIPE)
+        break
+    except:
+        port+=1
 
 # worker: bokeh serve cooccurrences/cooccurrences.py trending/trending.py factexplorer/factexplorer.py dictionaries/dictionaries.py --port=5100 --host=contentmine-demo.herokuapp.com --host=localhost:5006  --address=0.0.0.0 --use-xheaders --allow-websocket-origin=contentmine-demo.herokuapp.com --host=localhost:5100 --host=localhost:5000 --allow-websocket-origin=127.0.0.1:5000 --allow-websocket-origin=0.0.0.0:5000 --host=127.0.0.1
 
@@ -44,8 +53,8 @@ def main():
 
 @app.route("/cooccurrences")
 def cooccurrences():
-    session = pull_session(url="http://0.0.0.0:5006/cooccurrences")
-    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://0.0.0.0:5006")
+    session = pull_session(url="http://0.0.0.0:%d/cooccurrences") %port
+    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://0.0.0.0:%d") %port
     return render_template(
         "simple.html",
         script = script,
@@ -53,8 +62,8 @@ def cooccurrences():
     )
 @app.route("/trending")
 def trending():
-    session = pull_session(url="http://0.0.0.0:5006/trending")
-    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://0.0.0.0:5006")
+    session = pull_session(url="http://0.0.0.0:%d/trending") %port
+    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://0.0.0.0:%d") %port
     return render_template(
         "simple.html",
         script = script,
@@ -63,8 +72,8 @@ def trending():
 
 @app.route("/dictionaries")
 def dictionaries():
-    session = pull_session(url="http://0.0.0.0:5006/dictionaries")
-    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://0.0.0.0:5006")
+    session = pull_session(url="http://0.0.0.0:%d/dictionaries") %port
+    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://0.0.0.0:%d") %port
     return render_template(
         "simple.html",
         script = script,
@@ -73,8 +82,8 @@ def dictionaries():
 
 @app.route("/factexplorer")
 def factexplorer():
-    session = pull_session(url="http://0.0.0.0:5006/factexplorer")
-    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://0.0.0.0:5006")
+    session = pull_session(url="http://0.0.0.0:%d/factexplorer") %port
+    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://0.0.0.0:%d") %port
     return render_template(
         "simple.html",
         script = script,
