@@ -53,8 +53,8 @@ def main():
 
 @app.route("/cooccurrences")
 def cooccurrences():
-    session = pull_session(url="http://0.0.0.0:{0}/cooccurrences".format(str(port))
-    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://0.0.0.0:{0}".format(str(port))
+    session = pull_session(url="http://0.0.0.0:{0}/cooccurrences".format(str(port)))
+    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://0.0.0.0:{0}".format(str(port)))
     return render_template(
         "simple.html",
         script = script,
@@ -62,8 +62,8 @@ def cooccurrences():
     )
 @app.route("/trending")
 def trending():
-    session = pull_session(url="http://0.0.0.0:{0}/trending".format(str(port))
-    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://0.0.0.0:{0}".format(str(port))
+    session = pull_session(url="http://0.0.0.0:{0}/trending".format(str(port)))
+    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://0.0.0.0:{0}".format(str(port)))
     return render_template(
         "simple.html",
         script = script,
@@ -72,8 +72,8 @@ def trending():
 
 @app.route("/dictionaries")
 def dictionaries():
-    session = pull_session(url="http://0.0.0.0:{0}/dictionaries".format(str(port))
-    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://0.0.0.0:{0}".format(str(port))
+    session = pull_session(url="http://0.0.0.0:{0}/dictionaries".format(str(port)))
+    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://0.0.0.0:{0}".format(str(port)))
     return render_template(
         "simple.html",
         script = script,
@@ -82,8 +82,8 @@ def dictionaries():
 
 @app.route("/factexplorer")
 def factexplorer():
-    session = pull_session(url="http://0.0.0.0:{0}/factexplorer".format(str(port))
-    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://0.0.0.0:{0}".format(str(port))
+    session = pull_session(url="http://0.0.0.0:{0}/factexplorer".format(str(port)))
+    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://0.0.0.0:{0}".format(str(port)))
     return render_template(
         "simple.html",
         script = script,
