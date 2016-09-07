@@ -11,15 +11,15 @@
             rel="stylesheet" type="text/css">
         <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.1.min.js"></script>
         <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.1.min.js"></script>
-        <!-- <script>
-            window._bokeh_onload_callbacks = [window.StockApp.main];
-        </script> -->
     </head>
     <body>
         ContentMine DemoApp
         <div class=page>
           {{ script | safe }}
+
+          <p>
           {{ app_tag }}
+          </p>
         </div>
     </body>
 </html>

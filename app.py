@@ -30,8 +30,8 @@ def main():
 
 @app.route("/cooccurrences")
 def cooccurrences():
-    session = pull_session(url="http://localhost:5006/cooccurrences")
-    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences")
+    session = pull_session(url="http://localhost:5100/cooccurrences")
+    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://localhost:5100")
     return render_template(
         "simple.html",
         script = script,
@@ -39,8 +39,8 @@ def cooccurrences():
     )
 @app.route("/trending")
 def trending():
-    session = pull_session(url="http://localhost:5006/trending")
-    script = autoload_server(None, session_id=session.id, app_path="/trending")
+    session = pull_session(url="http://localhost:5100/trending")
+    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://localhost:5100")
     return render_template(
         "simple.html",
         script = script,
@@ -49,8 +49,8 @@ def trending():
 
 @app.route("/dictionaries")
 def dictionaries():
-    session = pull_session(url="http://localhost:5006/dictionaries")
-    script = autoload_server(None, session_id=session.id, app_path="/dictionaries")
+    session = pull_session(url="http://localhost:5100/dictionaries")
+    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://localhost:5100")
     return render_template(
         "simple.html",
         script = script,
@@ -59,8 +59,8 @@ def dictionaries():
 
 @app.route("/factexplorer")
 def factexplorer():
-    session = pull_session(url="http://localhost:5006/factexplorer")
-    script = autoload_server(None, session_id=session.id, app_path="/factexplorer")
+    session = pull_session(url="http://localhost:5100/factexplorer")
+    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://localhost:5100")
     return render_template(
         "simple.html",
         script = script,
