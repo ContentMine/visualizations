@@ -1,0 +1,11 @@
+numpy
+pandas
+bokeh
+dill
+Flask
+gunicorn
+Jinja2
+oauth
+oauthlib
+requests
+simplejson
