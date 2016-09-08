@@ -1,6 +1,6 @@
 numpy
 pandas
-bokeh
+bokeh==0.12.2
 dill
 Flask
 gunicorn
