@@ -69,6 +69,8 @@ def get_preprocessed_df():
     return df
 
 
+## functions to extract features
+
 def make_series(df, column):
     series = df[["firstPublicationDate", "sourcedict", column]]
     #series.index = pd.to_datetime(df["firstPublicationDate"])
@@ -85,9 +87,6 @@ def get_series(column):
             pickle.dump(series, outfile, protocol=4)
     return series
 
-
-
-## functions to extract features
 
 def count_occurrences(df):
     # replace pmcid by doi ideally
@@ -210,10 +209,11 @@ def ingest_cproject(path):
     pass
 
 def main():
-    get_coocc_features()
-    get_distribution_features()
-    get_timeseries_features()
-    get_coocc_factsets()
+    # get_coocc_features()
+    # get_distribution_features()
+    # get_timeseries_features()
+    # get_coocc_factsets()
+    get_series("term")
 
 if __name__ == '__main__':
     main()
