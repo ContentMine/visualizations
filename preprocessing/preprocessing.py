@@ -54,6 +54,7 @@ def preprocess():
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
     df["sourcedict"] = get_aspect(df)
     df["term"] = df["term"].map(str.lower)
+    df.drop_duplicates("_id_fact", inplace=True)
     return df
 
 def get_preprocessed_df():
@@ -130,11 +131,11 @@ def make_subset(coocc_features, x_axis, y_axis):
 
 def prepare_facts():
     coocc_features = get_coocc_features()
-    facets = sorted(coocc_features.index.levels[0])
+    dictionaries = sorted(coocc_features.index.levels[0])
     factsets = {}
-    for facet in facets:
-        subset = make_subset(coocc_features, facet, facet)
-        factsets[(facet, facet)] = subset
+    for dictionary in dictionaries:
+        subset = make_subset(coocc_features, dictionary, dictionary)
+        factsets[(dictionary, dictionary)] = subset
     return factsets
 
 def get_coocc_factsets():
