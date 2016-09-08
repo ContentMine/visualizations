@@ -83,10 +83,9 @@ for control in controls:
 
 
 ### LAYOUT
-content_filename = os.path.join(os.path.dirname(__file__), "description.html")
-description = Div(text=open(content_filename).read(), render_as_text=False, width=800)
+description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 
 inputs = row(*controls)
-layout = column(inputs, row(p, data_table))
-curdoc().add_root(column(description, layout))
+layout = column(description, column(inputs, row(p, data_table)))
+curdoc().add_root(layout)
 curdoc().title = "Exploring co-occurrences of facts"

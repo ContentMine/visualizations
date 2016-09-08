@@ -179,6 +179,7 @@ update(None, None, None) # initial load of the data
 
 ### LAYOUT
 
-layout = column(inputs, row(column(abs_arrangement), column(rel_arrangement)))
+description = Div(text=open("description.html").read(), render_as_text=False, width=800)
+layout = column(description, inputs, row(column(abs_arrangement), column(rel_arrangement)))
 curdoc().add_root(layout)
 curdoc().title("Exploring most frequent and uptrending facts")

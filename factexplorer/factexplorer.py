@@ -109,8 +109,8 @@ update()
 
 ### LAYOUT
 
-
+description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 inputs = row(*controls)
-layout = column(inputs, fig)
+layout = column(description, inputs, fig)
 curdoc().add_root(layout)
 curdoc().title = "Exploring timeseries of selected facts"
