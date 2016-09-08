@@ -26,7 +26,7 @@ import config
 import pickle
 import gzip
 
-with gzip.open("distribution_features.pklz", "rb") as infile:
+with gzip.open("dist_features.pklz", "rb") as infile:
     dist = pickle.load(infile)
 
 share = (dist.T / dist.sum(axis=1)).T
