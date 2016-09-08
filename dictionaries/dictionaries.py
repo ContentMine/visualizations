@@ -24,20 +24,21 @@ from itertools import chain, repeat
 from preprocessing import preprocessing
 import config
 import pickle
+import gzip
 
-with open("distribution_features.pkl", "rb") as infile:
+with gzip.open("distribution_features.pklz", "rb") as infile:
     dist = pickle.load(infile)
 
 share = (dist.T / dist.sum(axis=1)).T
 #dist["date"] = dist.index
-facets = sorted(dist.columns.tolist())
+dictionaries = sorted(dist.columns.tolist())
 resources = INLINE
 colors=palettes.Paired10
 
 
 ts_abs = TimeSeries(dist, tools="pan,wheel_zoom,reset", active_scroll='wheel_zoom',
                         width=800, height=400,
-                        title='Frequencies of facets - absolute counts', legend=True)
+                        title='Frequencies of dictionaries - absolute counts', legend=True)
 ts_abs.legend.orientation = "horizontal"
 ts_abs.legend.location = "top_center"
 ts_abs.legend.background_fill_alpha = 0
@@ -47,7 +48,7 @@ ts_abs.tools[2].reset_size=False
 
 ts_share = TimeSeries(share, tools="pan,wheel_zoom,reset", active_scroll='wheel_zoom',
                         width=800, height=400,
-                        title='Frequencies of facets - relative share', legend=True)
+                        title='Frequencies of dictionaries - relative share', legend=True)
 ts_share.x_range = ts_abs.x_range
 ts_share.legend.orientation = "horizontal"
 ts_share.legend.location = "top_center"
@@ -60,3 +61,4 @@ ts_share.tools[2].reset_size=False
 
 layout = column(ts_abs, ts_share)
 curdoc().add_root(layout)
+curdoc().title = "Exploring aggregated counts of facts over dictionaries"

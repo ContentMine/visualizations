@@ -24,11 +24,12 @@ from itertools import chain, repeat
 from preprocessing import preprocessing
 import config
 import pickle
+import gzip
 
-with open("timeseries_features.pkl", "rb") as infile:
+with gzip.open("timeseries_features.pklz", "rb") as infile:
     ts = pickle.load(infile)
 
-facets = sorted(ts.columns.levels[0])
+dictionaries = sorted(ts.columns.levels[0])
 resources = INLINE
 colors=palettes.Paired10
 
@@ -41,15 +42,15 @@ def get_dataset(df, facetvalue, relative):
     selected = df[facetvalue][selection].fillna(0)
     return selected
 
-def prepare_facts(facets):
+def prepare_facts(dictionaries):
     factsets = {}
-    for facet in facets:
+    for facet in dictionaries:
         absolutes = get_dataset(ts, facet, False)
         trendings = get_dataset(ts, facet, True)
         factsets[facet] = (absolutes, trendings)
     return factsets
 
-factsets = prepare_facts(facets)
+factsets = prepare_facts(dictionaries)
 
 
 def get_subset(facet):
@@ -106,7 +107,7 @@ trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
 
 top_n = Slider(title="Number of top-n items to display", value=10, start=1, end=10, step=1)
-facetchooser = Select(title="Facets", options=facets, value=facets[1])
+facetchooser = Select(title="dictionaries", options=dictionaries, value=dictionaries[1])
 timegroup = RadioGroup(labels=timegroupoptions, active=2)
 trending_chooser = RadioGroup(labels=["absolute counts", "period-to-period change"], active=0)
 
@@ -180,3 +181,4 @@ update(None, None, None) # initial load of the data
 
 layout = column(inputs, row(column(abs_arrangement), column(rel_arrangement)))
 curdoc().add_root(layout)
+curdoc().title("Exploring most frequent and uptrending facts")

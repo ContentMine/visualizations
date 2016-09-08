@@ -22,6 +22,7 @@ from preprocessing import preprocessing
 import config
 
 import pickle
+import gzip
 
 # setup
 
@@ -30,7 +31,7 @@ colors=palettes.Dark2_8
 
 # load initial data
 
-with open("term_series.pkl", "rb") as infile:
+with gzip.open("term_series.pklz", "rb") as infile:
     df = pickle.load(infile)
 
 # Create Input controls
@@ -112,4 +113,4 @@ update()
 inputs = row(*controls)
 layout = column(inputs, fig)
 curdoc().add_root(layout)
-curdoc().title = "Exploring co-occurrences of fact between facets"
+curdoc().title = "Exploring timeseries of selected facts"

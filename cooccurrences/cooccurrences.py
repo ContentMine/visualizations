@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import numpy as np
 
-from bokeh.layouts import column, row
+from bokeh.layouts import column, row, WidgetBox
 from bokeh.plotting import Figure, show
 from bokeh.models import ColumnDataSource, HoverTool
 from bokeh.models.widgets import Slider, Select, TextInput, DataTable, TableColumn, Paragraph, Div
@@ -18,31 +18,28 @@ import bokeh.resources as resources
 
 import itertools
 import pickle
-
-from preprocessing import preprocessing
-import config
+import gzip
 
 
-with open("coocc_factsets.pkl", "rb") as infile:
+
+with gzip.open("coocc_factsets.pklz", "rb") as infile:
     factsets = pickle.load(infile)
 
 # Create Input controls
 pluginoptions = sorted([f[0] for f in list(factsets.keys())])
 top_n = Slider(title="Number of top-n items to display", value=10, start=5, end=25, step=5)
-facet_selector = Select(title="Facet", options=sorted(pluginoptions), value=pluginoptions[2])
-
-
+dictionary_selector = Select(title="Dictionary", options=sorted(pluginoptions), value=pluginoptions[2])
 
 def get_subset(x_axis, y_axis):
     return factsets.get((x_axis, y_axis))
 
 def update(attrname, old, new):
-    new_selected, new_x_factors, new_y_factors = get_subset(facet_selector.value, facet_selector.value)
+    new_selected, new_x_factors, new_y_factors = get_subset(dictionary_selector.value, dictionary_selector.value)
     bins = np.linspace(new_selected.counts.min(), new_selected.counts.max(), 10) # bin labels must be one more than len(colorpalette)
     new_selected["color"] = pd.cut(new_selected.counts, bins, labels = list(reversed(palettes.Blues9)), include_lowest=True)
 
-    p.xaxis.axis_label = facet_selector.value
-    p.yaxis.axis_label = facet_selector.value
+    p.xaxis.axis_label = dictionary_selector.value
+    p.yaxis.axis_label = dictionary_selector.value
     p.title.text = "Top %d fact co-occurrences selected" % top_n.value
 
     src = ColumnDataSource(dict(
@@ -56,7 +53,7 @@ def update(attrname, old, new):
     p.y_range.update(factors=new_y_factors[:top_n.value])
 
 source = ColumnDataSource(data=dict(x=[], y=[], color=[], raw=[]))
-selected, new_x_factors, new_y_factors = get_subset(facet_selector.value, facet_selector.value)
+selected, new_x_factors, new_y_factors = get_subset(dictionary_selector.value, dictionary_selector.value)
 
 TOOLS="tap, box_select, reset"
 
@@ -80,15 +77,16 @@ table_columns = [TableColumn(field="x", title="X-axis facts"),
 data_table = DataTable(source=source, columns=table_columns, width=400, height=600)
 
 
-controls = [top_n, facet_selector]
+controls = [top_n, dictionary_selector]
 for control in controls:
     control.on_change('value', update)
 
 
 ### LAYOUT
-
+content_filename = os.path.join(os.path.dirname(__file__), "description.html")
+description = Div(text=open(content_filename).read(), render_as_text=False, width=800)
 
 inputs = row(*controls)
 layout = column(inputs, row(p, data_table))
-curdoc().title = "Exploring co-occurrences of fact between facets"
-curdoc().add_root(layout)
+curdoc().add_root(column(description, layout))
+curdoc().title = "Exploring co-occurrences of facts"
