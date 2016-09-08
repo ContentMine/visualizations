@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import os
 import pickle
+import gzip, bz2
 import itertools
 
 import config
@@ -54,16 +55,21 @@ def preprocess():
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
     df["sourcedict"] = get_aspect(df)
     df["term"] = df["term"].map(str.lower)
+    df.drop_duplicates("_id_fact", inplace=True)
     return df
 
 def get_preprocessed_df():
     try:
-        df = pd.read_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, "preprocessed_df.pklz"), "rb") as infile:
+            df = pickle.load(infile)
     except:
         df = preprocess()
-        df.to_pickle(os.path.join(cacheddatapath, "preprocessed_df.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, "preprocessed_df.pklz"), "wb") as outfile:
+            pickle.dump(df, outfile, protocol=4)
     return df
 
+
+## functions to extract features
 
 def make_series(df, column):
     series = df[["firstPublicationDate", "sourcedict", column]]
@@ -72,16 +78,15 @@ def make_series(df, column):
 
 def get_series(column):
     try:
-        series = pd.read_pickle(os.path.join(cacheddatapath, column+"_series.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, column+"_series.pklz"), "rb") as infile:
+            series = pickle.load(infile)
     except:
         df = get_preprocessed_df()
         series = make_series(df, column)
-        series.to_pickle(os.path.join(cacheddatapath, column+"_series.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, column+"_series.pklz"), "wb") as outfile:
+            pickle.dump(series, outfile, protocol=4)
     return series
 
-
-
-## functions to extract features
 
 def count_occurrences(df):
     # replace pmcid by doi ideally
@@ -103,11 +108,13 @@ def count_cooccurrences(df):
 
 def get_coocc_features():
     try:
-        coocc_features = pd.read_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
+        with bz2.open(os.path.join(cacheddatapath, "coocc_features.pklz2"), "r") as infile:
+            coocc_features = pickle.load(infile)
     except:
         df = get_preprocessed_df()
         coocc_features = count_cooccurrences(df)
-        coocc_features.to_pickle(os.path.join(cacheddatapath, "coocc_features.pkl"))
+        with bz2.BZ2File(os.path.join(cacheddatapath, "coocc_features.pklz2"), "w") as outfile:
+            pickle.dump(coocc_features, outfile, protocol=4)
     return coocc_features
 
 def make_subset(coocc_features, x_axis, y_axis):
@@ -130,21 +137,21 @@ def make_subset(coocc_features, x_axis, y_axis):
 
 def prepare_facts():
     coocc_features = get_coocc_features()
-    facets = sorted(coocc_features.index.levels[0])
+    dictionaries = sorted(coocc_features.index.levels[0])
     factsets = {}
-    for facet in facets:
-        subset = make_subset(coocc_features, facet, facet)
-        factsets[(facet, facet)] = subset
+    for dictionary in dictionaries:
+        subset = make_subset(coocc_features, dictionary, dictionary)
+        factsets[(dictionary, dictionary)] = subset
     return factsets
 
 def get_coocc_factsets():
     try:
-        with open(os.path.join(cacheddatapath, "coocc_factsets.pkl"), "rb") as infile:
+        with gzip.open(os.path.join(cacheddatapath, "coocc_factsets.pklz"), "rb") as infile:
             coocc_factsets = pickle.load(infile)
     except:
         coocc_factsets = prepare_facts()
-        with open(os.path.join(cacheddatapath, "coocc_factsets.pkl"), "wb") as outfile:
-            pickle.dump(coocc_factsets, outfile)
+        with gzip.open(os.path.join(cacheddatapath, "coocc_factsets.pklz"), "wb") as outfile:
+            pickle.dump(coocc_factsets, outfile, protocol=4)
     return coocc_factsets
 
 
@@ -160,11 +167,13 @@ def make_timeseries(df):
 
 def get_timeseries_features():
     try:
-        ts_features = pd.read_pickle(os.path.join(cacheddatapath, "timeseries_features.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, "timeseries_features.pklz"), "rb") as infile:
+            ts_features = pickle.load(infile)
     except:
         df = get_preprocessed_df()
         ts_features = make_timeseries(df)
-        ts_features.to_pickle(os.path.join(cacheddatapath, "timeseries_features.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, "timeseries_features.pklz"), "wb") as outfile:
+            pickle.dump(ts_features, outfile, protocol=4)
     return ts_features
 
 def make_distribution_features(df):
@@ -174,11 +183,13 @@ def make_distribution_features(df):
 
 def get_distribution_features():
     try:
-        dist_features = pd.read_pickle(os.path.join(cacheddatapath, "dist_features.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, "dist_features.pklz"), "rb") as infile:
+            dist_features = pickle.load(infile)
     except:
         df = get_preprocessed_df()
         dist_features = make_distribution_features(df)
-        dist_features.to_pickle(os.path.join(cacheddatapath, "distribution_features.pkl"))
+        with gzip.open(os.path.join(cacheddatapath, "dist_features.pklz"), "wb") as outfile:
+            pickle.dump(dist_features, outfile, protocol=4)
     return dist_features
 
 def get_single_fact(df, fact):
@@ -196,3 +207,13 @@ def ingest_elasticdump(path):
 
 def ingest_cproject(path):
     pass
+
+def main():
+    # get_coocc_features()
+    # get_distribution_features()
+    # get_timeseries_features()
+    # get_coocc_factsets()
+    get_series("term")
+
+if __name__ == '__main__':
+    main()

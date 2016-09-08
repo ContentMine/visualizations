@@ -1,13 +1,25 @@
-<html>
-  <head>
-    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.css" type="text/css" />
-    <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.js"></script>
-    {{ script | safe }}
-  </head>
-  <body>
-    <div class=page>
-      <h1>Header text</h1>
-      {{ div | safe }}
-    </div>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>ContentMine Applet Example</title>
+        <link
+            href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.2.min.css"
+            rel="stylesheet" type="text/css">
+        <link
+            href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.2.min.css"
+            rel="stylesheet" type="text/css">
+        <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.2.min.js"></script>
+        <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.2.min.js"></script>
+    </head>
+    <body>
+        ContentMine DemoApp
+        <div class=page>
+          {{ script | safe }}
+
+          <p>
+          {{ app_tag }}
+          </p>
+        </div>
+    </body>
 </html>
