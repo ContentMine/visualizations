@@ -109,7 +109,7 @@ update()
 
 ### LAYOUT
 
-description = Div(text=open("factexplorer/description.html").read(), render_as_text=False, width=800)
+description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 inputs = row(*controls)
 layout = column(description, inputs, fig)
 curdoc().add_root(layout)
