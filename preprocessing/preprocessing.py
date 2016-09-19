@@ -9,15 +9,19 @@ import os
 import pickle
 import gzip, bz2
 import itertools
+import argparse
 
 import config
 
-### functions for ingesting from elastic
 
-factsfile = "facts.json"
-metadatafile = "metadata.json"
-rawdatapath = config.rawdatapath
-cacheddatapath = config.cacheddatapath
+parser = argparse.ArgumentParser(description='ingest and preprocess contentmine facts from elasticsearch dumps and CProjects')
+parser.add_argument('--raw', dest='raw', help='relative or absolute path of the raw data folder', required=True)
+parser.add_argument('--cache', dest='cache', help='relative or absolute path of the cached data folder', required=True)
+parser.add_argument('--results', dest='results', help='relative or absolute path of the results folder')
+parser.add_argument('--elastic', dest='elastic', help='flag if input is elastic-dump', action="store_true")
+parser.add_argument('--cproject', dest='cproject', help='flag if input is cproject', action="store_true")
+args = parser.parse_args()
+
 
 def get_raw(filename):
     with open(filename) as infile:
@@ -34,7 +38,7 @@ def get_raw(filename):
 
 ### functions for preprocessing
 
-def get_aspect(df):
+def get_dictionary(df):
     dicts = df["identifiers"].map(lambda x: x.get("contentmine"))
     return dicts.str.extract('([a-z]+)')
 
@@ -45,25 +49,25 @@ def clean(df):
                 notnull = df[df[col].notnull()]
                 df[col] = notnull[col].map(lambda x: x[0])
 
-def preprocess():
-    rawfacts = get_raw(os.path.join(rawdatapath, factsfile))
-    rawmetadata = get_raw(os.path.join(rawdatapath, metadatafile))
+def preprocess(rawdatapath):
+    rawfacts = get_raw(os.path.join(rawdatapath, "facts.json"))
+    rawmetadata = get_raw(os.path.join(rawdatapath, "metadata.json"))
     parsed_facts = rawfacts.join(pd.DataFrame(rawfacts["_source"].to_dict()).T).drop("_source", axis=1)
     parsed_metadata = rawmetadata.join(pd.DataFrame(rawmetadata["_source"].to_dict()).T).drop("_source", axis=1)
     clean(parsed_facts)
     clean(parsed_metadata)
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
-    df["sourcedict"] = get_aspect(df)
+    df["sourcedict"] = get_dictionary(df)
     df["term"] = df["term"].map(str.lower)
     df.drop_duplicates("_id_fact", inplace=True)
     return df
 
-def get_preprocessed_df():
+def get_preprocessed_df(cacheddatapath, rawdatapath):
     try:
         with gzip.open(os.path.join(cacheddatapath, "preprocessed_df.pklz"), "rb") as infile:
             df = pickle.load(infile)
     except:
-        df = preprocess()
+        df = preprocess(rawdatapath)
         with gzip.open(os.path.join(cacheddatapath, "preprocessed_df.pklz"), "wb") as outfile:
             pickle.dump(df, outfile, protocol=4)
     return df
@@ -76,12 +80,12 @@ def make_series(df, column):
     #series.index = pd.to_datetime(df["firstPublicationDate"])
     return series
 
-def get_series(column):
+def get_series(cacheddatapath, rawdatapath, column):
     try:
         with gzip.open(os.path.join(cacheddatapath, column+"_series.pklz"), "rb") as infile:
             series = pickle.load(infile)
     except:
-        df = get_preprocessed_df()
+        df = get_preprocessed_df(cacheddatapath, rawdatapath)
         series = make_series(df, column)
         with gzip.open(os.path.join(cacheddatapath, column+"_series.pklz"), "wb") as outfile:
             pickle.dump(series, outfile, protocol=4)
@@ -106,12 +110,12 @@ def count_cooccurrences(df):
     coocc_features = pd.DataFrame(data=C, index=labels, columns=labels)
     return coocc_features
 
-def get_coocc_features():
+def get_coocc_features(cacheddatapath, rawdatapath):
     try:
         with bz2.open(os.path.join(cacheddatapath, "coocc_features.pklz2"), "r") as infile:
             coocc_features = pickle.load(infile)
     except:
-        df = get_preprocessed_df()
+        df = get_preprocessed_df(cacheddatapath, rawdatapath)
         coocc_features = count_cooccurrences(df)
         with bz2.BZ2File(os.path.join(cacheddatapath, "coocc_features.pklz2"), "w") as outfile:
             pickle.dump(coocc_features, outfile, protocol=4)
@@ -135,8 +139,8 @@ def make_subset(coocc_features, x_axis, y_axis):
 
     return df, new_axis_factors, new_axis_factors
 
-def prepare_facts():
-    coocc_features = get_coocc_features()
+def prepare_facts(cacheddatapath, rawdatapath):
+    coocc_features = get_coocc_features(cacheddatapath, rawdatapath)
     dictionaries = sorted(coocc_features.index.levels[0])
     factsets = {}
     for dictionary in dictionaries:
@@ -144,12 +148,12 @@ def prepare_facts():
         factsets[(dictionary, dictionary)] = subset
     return factsets
 
-def get_coocc_factsets():
+def get_coocc_factsets(cacheddatapath, rawdatapath):
     try:
         with gzip.open(os.path.join(cacheddatapath, "coocc_factsets.pklz"), "rb") as infile:
             coocc_factsets = pickle.load(infile)
     except:
-        coocc_factsets = prepare_facts()
+        coocc_factsets = prepare_facts(cacheddatapath, rawdatapath)
         with gzip.open(os.path.join(cacheddatapath, "coocc_factsets.pklz"), "wb") as outfile:
             pickle.dump(coocc_factsets, outfile, protocol=4)
     return coocc_factsets
@@ -165,12 +169,12 @@ def make_timeseries(df):
     ts.index = pd.to_datetime(ts.index)
     return ts
 
-def get_timeseries_features():
+def get_timeseries_features(cacheddatapath, rawdatapath):
     try:
         with gzip.open(os.path.join(cacheddatapath, "timeseries_features.pklz"), "rb") as infile:
             ts_features = pickle.load(infile)
     except:
-        df = get_preprocessed_df()
+        df = get_preprocessed_df(cacheddatapath, rawdatapath)
         ts_features = make_timeseries(df)
         with gzip.open(os.path.join(cacheddatapath, "timeseries_features.pklz"), "wb") as outfile:
             pickle.dump(ts_features, outfile, protocol=4)
@@ -181,12 +185,12 @@ def make_distribution_features(df):
     dist_features = dist_raw.pivot_table(index="firstPublicationDate", columns=["sourcedict"], aggfunc=len)
     return dist_features
 
-def get_distribution_features():
+def get_distribution_features(cacheddatapath, rawdatapath):
     try:
         with gzip.open(os.path.join(cacheddatapath, "dist_features.pklz"), "rb") as infile:
             dist_features = pickle.load(infile)
     except:
-        df = get_preprocessed_df()
+        df = get_preprocessed_df(cacheddatapath, rawdatapath)
         dist_features = make_distribution_features(df)
         with gzip.open(os.path.join(cacheddatapath, "dist_features.pklz"), "wb") as outfile:
             pickle.dump(dist_features, outfile, protocol=4)
@@ -208,12 +212,21 @@ def ingest_elasticdump(path):
 def ingest_cproject(path):
     pass
 
-def main():
-    # get_coocc_features()
-    # get_distribution_features()
-    # get_timeseries_features()
-    # get_coocc_factsets()
-    get_series("term")
+#####
+
+def main(args):
+
+    if not args.raw:
+        rawdatapath = config.rawdatapath
+    if not args.cache:
+        cacheddatapath = config.cacheddatapath
+
+    get_preprocessed_df(cacheddatapath, rawdatapath)
+    get_series(cacheddatapath, rawdatapath, "term")
+    get_coocc_features(cacheddatapath, rawdatapath)
+    get_distribution_features(cacheddatapath, rawdatapath)
+    get_timeseries_features(cacheddatapath, rawdatapath)
+    get_coocc_factsets(cacheddatapath, rawdatapath)
 
 if __name__ == '__main__':
-    main()
+    main(args)
