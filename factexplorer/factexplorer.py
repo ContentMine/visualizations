@@ -1,7 +1,5 @@
 # factheatmap.py
 
-import os
-
 import pandas as pd
 import numpy as np
 
@@ -16,10 +14,7 @@ from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTo
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
-import itertools
-
 from preprocessing import preprocessing
-import config
 
 import pickle
 import gzip

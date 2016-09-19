@@ -1,10 +1,7 @@
 # main.py
-import os
 
-from math import pi
 import numpy as np
 import pandas as pd
-import os
 
 from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
@@ -19,10 +16,6 @@ from bokeh.layouts import gridplot
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
-from itertools import chain, repeat
-
-from preprocessing import preprocessing
-import config
 import pickle
 import gzip
 
