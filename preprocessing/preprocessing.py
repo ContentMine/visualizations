@@ -216,9 +216,14 @@ def ingest_cproject(path):
 
 def main(args):
 
-    if not args.raw:
+    if args.raw:
+        rawdatapath = args.raw
+    else:
         rawdatapath = config.rawdatapath
-    if not args.cache:
+        
+    if args.cache:
+        cacheddatapath = args.cache
+    else:
         cacheddatapath = config.cacheddatapath
 
     get_preprocessed_df(cacheddatapath, rawdatapath)
