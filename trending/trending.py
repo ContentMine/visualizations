@@ -98,11 +98,11 @@ def update(attrname, old, new):
 # Create Input controls
 timegroupoptionsmapper = {0:"A", 1:"M", 2:"D"}
 trendingoptionsmapper = {0:False, 1:True}
-timegroupoptions = ["Year", "Month", "Day"]
+timegroupoptions = ["Year", "Month"]
 
 top_n = Slider(title="Number of top-n items to display", value=10, start=1, end=10, step=1)
 facetchooser = Select(title="dictionaries", options=dictionaries, value=dictionaries[1])
-timegroup = RadioGroup(labels=timegroupoptions, active=2)
+timegroup = RadioGroup(labels=timegroupoptions, active=1)
 trending_chooser = RadioGroup(labels=["absolute counts", "period-to-period change"], active=0)
 
 initial_subset = get_subset(facetchooser.value)
@@ -163,11 +163,10 @@ def make_plots(linesources, pointsources):
 abs_arrangement = make_plots(abs_sources, abs_point_sources)
 rel_arrangement = make_plots(rel_sources, rel_point_sources)
 
-controls = [facetchooser, timegroup]
-for control in controls:
-    control.on_change('value', update)
+facetchooser.on_change("value", update)
+timegroup.on_change('active', update)
 
-inputs = row(*controls)
+inputs = row(facetchooser, timegroup)
 
 update(None, None, None) # initial load of the data
 
@@ -176,4 +175,4 @@ update(None, None, None) # initial load of the data
 description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 layout = column(inputs, row(column(abs_arrangement), column(rel_arrangement)))
 curdoc().add_root(layout)
-curdoc().title("Exploring most frequent and uptrending facts")
+curdoc.title = "Exploring most frequent and uptrending facts"

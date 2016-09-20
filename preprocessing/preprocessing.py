@@ -14,15 +14,6 @@ import argparse
 import config
 
 
-parser = argparse.ArgumentParser(description='ingest and preprocess contentmine facts from elasticsearch dumps and CProjects')
-parser.add_argument('--raw', dest='raw', help='relative or absolute path of the raw data folder', required=True)
-parser.add_argument('--cache', dest='cache', help='relative or absolute path of the cached data folder', required=True)
-parser.add_argument('--results', dest='results', help='relative or absolute path of the results folder')
-parser.add_argument('--elastic', dest='elastic', help='flag if input is elastic-dump', action="store_true")
-parser.add_argument('--cproject', dest='cproject', help='flag if input is cproject', action="store_true")
-args = parser.parse_args()
-
-
 def get_raw(filename):
     with open(filename) as infile:
         raw = infile.read()
@@ -215,7 +206,7 @@ def ingest_cproject(path):
 #####
 
 def main(args):
-    
+
     if args.raw:
         rawdatapath = args.raw
     else:
@@ -234,4 +225,11 @@ def main(args):
     get_coocc_factsets(cacheddatapath, rawdatapath)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='ingest and preprocess contentmine facts from elasticsearch dumps and CProjects')
+    parser.add_argument('--raw', dest='raw', help='relative or absolute path of the raw data folder', required=True)
+    parser.add_argument('--cache', dest='cache', help='relative or absolute path of the cached data folder', required=True)
+    parser.add_argument('--results', dest='results', help='relative or absolute path of the results folder')
+    parser.add_argument('--elastic', dest='elastic', help='flag if input is elastic-dump', action="store_true")
+    parser.add_argument('--cproject', dest='cproject', help='flag if input is cproject', action="store_true")
+    args = parser.parse_args()
     main(args)

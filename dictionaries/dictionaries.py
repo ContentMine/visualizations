@@ -1,5 +1,7 @@
 # main.py
 
+import pandas as pd
+
 from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
 from bokeh.embed import standalone_html_page_for_models
@@ -19,6 +21,8 @@ import gzip
 with gzip.open("dist_features.pklz", "rb") as infile:
     dist = pickle.load(infile)
 
+dist.index=pd.to_datetime(dist.index)
+dist = dist.groupby(pd.TimeGrouper(freq="A")).sum()
 share = (dist.T / dist.sum(axis=1)).T
 #dist["date"] = dist.index
 dictionaries = sorted(dist.columns.tolist())

@@ -14,7 +14,7 @@ from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTo
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
-from preprocessing import preprocessing
+from preprocessing.preprocessing import make_timeseries, get_facts_from_list
 
 import pickle
 import gzip
@@ -51,8 +51,8 @@ timegroup = RadioGroup(labels=timegroupoptions, active=2)
 def get_ts_data():
     requested_facts = text_input.value.split(",")[:8]
     requested_facts = [f.strip() for f in requested_facts]
-    req_df = preprocessing.get_facts_from_list(df, requested_facts)
-    ts = preprocessing.make_timeseries(req_df)
+    req_df = get_facts_from_list(df, requested_facts)
+    ts = make_timeseries(req_df)
     ts.columns = ts.columns.droplevel(0)
     ts = ts.groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroup.active])).sum()
     return ts
