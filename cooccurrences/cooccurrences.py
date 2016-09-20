@@ -58,9 +58,16 @@ def update(attrname, old, new):
 source = ColumnDataSource(data=dict(x=[], y=[], color=[], raw=[], wikidataID=[]))
 selected, new_x_factors, new_y_factors = get_subset(dictionary_selector.value, dictionary_selector.value)
 
-TOOLS="tap, reset"
 
+# hover = HoverTool(
+#         tooltips="""
+#         <div>
+#             Wikidata ID for this fact: @wikidataID
+#         </div>
+#         """
+#     )
 
+TOOLS="hover, tap, reset"
 
 p = Figure(plot_height=700, plot_width=700, title="",
            tools=TOOLS, toolbar_location="above",
@@ -75,6 +82,9 @@ p.ygrid.visible = False
 url = "https://www.wikidata.org/wiki/@wikidataID"
 taptool = p.select(type=TapTool)
 taptool.callback = OpenURL(url=url)
+
+p.select_one(HoverTool).tooltips = [("wikidataID for this item:", "@wikidataID")]
+
 
 renderer = p.select(name="glyphs")[0]
 renderer.selection_glyph = renderer.glyph
