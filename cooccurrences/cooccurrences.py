@@ -49,31 +49,31 @@ def update(attrname, old, new):
         y=new_selected["y"].astype(object),
         color=new_selected["color"].astype(object),
         wikidataID=new_selected["wikidataID"],
+        counts=new_selected["counts"].astype(int),
         raw=new_selected["raw"].astype(int)))
     source.data.update(src.data)
 
     p.x_range.update(factors=new_x_factors[:top_n.value])
     p.y_range.update(factors=new_y_factors[:top_n.value])
 
-source = ColumnDataSource(data=dict(x=[], y=[], color=[], raw=[], wikidataID=[]))
+
+source = ColumnDataSource(data=dict(x=[], y=[], color=[], raw=[], wikidataID=[], counts=[]))
 selected, new_x_factors, new_y_factors = get_subset(dictionary_selector.value, dictionary_selector.value)
 
 
-# hover = HoverTool(
-#         tooltips="""
-#         <div>
-#             Wikidata ID for this fact: @wikidataID
-#         </div>
-#         """
-#     )
+TOOLS="tap, reset"
 
-TOOLS="hover, tap, reset"
+hover = HoverTool(names = ["glyphs"],
+                  tooltips=[("Counts", "@counts"),
+                            ("wikidataID for this item", "@wikidataID")])
 
 p = Figure(plot_height=700, plot_width=700, title="",
            tools=TOOLS, toolbar_location="above",
            x_range=new_x_factors[:top_n.value],  y_range=new_y_factors[:top_n.value])
+p.add_tools(hover)
+
 update(None, None, None) # initial load of the data
-p.rect(x="x", y="y", source=source, color="color", width=0.95, height=0.95, name="glyphs")
+rects = p.rect(x="x", y="y", source=source, color="color", width=0.95, height=0.95, name="glyphs")
 p.xaxis.major_label_orientation = np.pi/4
 p.yaxis.major_label_orientation = np.pi/4
 p.xgrid.visible = False
@@ -82,9 +82,6 @@ p.ygrid.visible = False
 url = "https://www.wikidata.org/wiki/@wikidataID"
 taptool = p.select(type=TapTool)
 taptool.callback = OpenURL(url=url)
-
-p.select_one(HoverTool).tooltips = [("wikidataID for this item:", "@wikidataID")]
-
 
 renderer = p.select(name="glyphs")[0]
 renderer.selection_glyph = renderer.glyph
@@ -105,6 +102,6 @@ for control in controls:
 description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 
 inputs = row(*controls)
-layout = column(description, column(inputs, row(p, data_table)))
+layout = column(description, inputs, p)
 curdoc().add_root(layout)
 curdoc().title = "Exploring co-occurrences of facts"
