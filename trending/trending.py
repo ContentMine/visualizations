@@ -1,7 +1,7 @@
 # main.py
-
 import numpy as np
 import pandas as pd
+
 
 from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
@@ -16,6 +16,7 @@ from bokeh.layouts import gridplot
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
+import config
 import pickle
 import gzip
 
@@ -173,6 +174,6 @@ update(None, None, None) # initial load of the data
 ### LAYOUT
 
 description = Div(text=open("description.html").read(), render_as_text=False, width=800)
-layout = column(description, inputs, row(column(abs_arrangement), column(rel_arrangement)))
+layout = column(inputs, row(column(abs_arrangement), column(rel_arrangement)))
 curdoc().add_root(layout)
-curdoc().title = "Exploring most frequent and uptrending facts"
+curdoc().title("Exploring most frequent and uptrending facts")

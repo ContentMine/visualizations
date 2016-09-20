@@ -215,12 +215,12 @@ def ingest_cproject(path):
 #####
 
 def main(args):
-
+    
     if args.raw:
         rawdatapath = args.raw
     else:
         rawdatapath = config.rawdatapath
-        
+
     if args.cache:
         cacheddatapath = args.cache
     else:
