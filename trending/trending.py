@@ -101,8 +101,8 @@ trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month"]
 
 top_n = Slider(title="Number of top-n items to display", value=10, start=1, end=10, step=1)
-facetchooser = Select(title="dictionaries", options=dictionaries, value=dictionaries[1])
-timegroup = RadioGroup(labels=timegroupoptions, active=1)
+facetchooser = Select(title="dictionaries", options=dictionaries, value=dictionaries[8])
+timegroup = RadioGroup(labels=timegroupoptions, active=0)
 trending_chooser = RadioGroup(labels=["absolute counts", "period-to-period change"], active=0)
 
 initial_subset = get_subset(facetchooser.value)

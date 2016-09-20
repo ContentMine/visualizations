@@ -27,9 +27,9 @@ with gzip.open("../wikidata_dict.pklz", "rb") as infile:
     wikidataIDs = pickle.load(infile)
 
 # Create Input controls
-pluginoptions = sorted([f[0] for f in list(factsets.keys())])
+dictionaries = sorted([f[0] for f in list(factsets.keys())])
 top_n = Slider(title="Number of top-n items to display", value=10, start=5, end=25, step=5)
-dictionary_selector = Select(title="Dictionary", options=sorted(pluginoptions), value=pluginoptions[2])
+dictionary_selector = Select(title="Dictionary", options=dictionaries, value=dictionaries[8])
 
 def get_subset(x_axis, y_axis):
     return factsets.get((x_axis, y_axis))

@@ -31,7 +31,7 @@ with gzip.open("term_series.pklz", "rb") as infile:
 
 # Create Input controls
 
-text_input = TextInput(value="erlotinib, zika, myopathy, retinitis",
+text_input = TextInput(value="dengue, west nile, chikungunya, yellow fever",
                         title="Enter up to 8 comma separated facts:", width=600)
 go_button = Button(label="Update", width=70)
 

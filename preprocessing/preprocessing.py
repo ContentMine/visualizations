@@ -33,6 +33,10 @@ def get_dictionary(df):
     dicts = df["identifiers"].map(lambda x: x.get("contentmine"))
     return dicts.str.extract('([a-z]+)')
 
+def get_wikidataIDs(df):
+    ids = df["identifiers"].map(lambda x: x.get("wikidata", "None"))
+    return ids
+
 def clean(df):
     for col in df.columns:
         if type(df.head(1)[col][0]) == list:
@@ -50,6 +54,7 @@ def preprocess(rawdatapath):
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
     df["sourcedict"] = get_dictionary(df)
     df["term"] = df["term"].map(str.lower)
+    df["wikidataID"] = get_wikidataIDs(df)
     df.drop_duplicates("_id_fact", inplace=True)
     return df
 
@@ -63,6 +68,23 @@ def get_preprocessed_df(cacheddatapath, rawdatapath):
             pickle.dump(df, outfile, protocol=4)
     return df
 
+def make_wikidata_dict(cacheddatapath, rawdatapath):
+    wikidataIDs = {}
+    df = get_preprocessed_df(cacheddatapath, rawdatapath)
+    df = df[["term", "wikidataID"]]
+    for index, row in df.iterrows():
+        wikidataIDs[row["term"]] = row["wikidataID"]
+    return wikidataIDs
+
+def get_wikidata_dict(cacheddatapath, rawdatapath):
+    try:
+        with gzip.open(os.path.join(cacheddatapath, "wikidata_dict.pklz"), "rb") as infile:
+            wikidataIDs = pickle.load(infile)
+    except:
+        wikidataIDs = make_wikidata_dict(cacheddatapath, rawdatapath)
+        with gzip.open(os.path.join(cacheddatapath, "wikidata_dict.pklz"), "wb") as outfile:
+            pickle.dump(wikidataIDs, outfile, protocol=4)
+    return wikidataIDs
 
 ## functions to extract features
 
@@ -223,6 +245,7 @@ def main(args):
     get_distribution_features(cacheddatapath, rawdatapath)
     get_timeseries_features(cacheddatapath, rawdatapath)
     get_coocc_factsets(cacheddatapath, rawdatapath)
+    get_wikidata_dict(cacheddatapath, rawdatapath)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='ingest and preprocess contentmine facts from elasticsearch dumps and CProjects')
