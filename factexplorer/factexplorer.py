@@ -14,7 +14,7 @@ from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTo
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
-from preprocessing.preprocessing import make_timeseries, get_facts_from_list
+from preprocessing import preprocessing
 
 import pickle
 import gzip
@@ -38,7 +38,7 @@ go_button = Button(label="Update", width=70)
 timegroupoptionsmapper = {0:"A", 1:"M", 2:"D"}
 trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
-timegroup = RadioGroup(labels=timegroupoptions, active=2)
+timegroup = RadioGroup(labels=timegroupoptions, active=1)
 
 
 # def get_single_fact(series, fact):
@@ -51,14 +51,17 @@ timegroup = RadioGroup(labels=timegroupoptions, active=2)
 def get_ts_data():
     requested_facts = text_input.value.split(",")[:8]
     requested_facts = [f.strip() for f in requested_facts]
-    req_df = get_facts_from_list(df, requested_facts)
-    ts = make_timeseries(req_df)
+    req_df = preprocessing.get_facts_from_list(df, requested_facts)
+    ts = preprocessing.make_timeseries(req_df)
     ts.columns = ts.columns.droplevel(0)
     ts = ts.groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroup.active])).sum()
     return ts
 
 
-def update():
+def on_click_update():
+    update(None, None, None)
+
+def update(attr, old, new):
     new_data = get_ts_data()
     new_columns = new_data.columns.tolist()
     new_data.columns = [str(r) for r in list(range(0,len(new_columns)))]
@@ -95,12 +98,12 @@ legend = Legend(legends=legends, location=(0, 0))
 fig.add_layout(legend, "right")
 
 
-controls = [text_input, go_button]
-go_button.on_click(update)
-#timegroup.on_change("value", update)
+controls = [text_input, go_button, timegroup]
+go_button.on_click(on_click_update)
+timegroup.on_change("active", update)
 
 # initial update
-update()
+update(None, None, None)
 
 ### LAYOUT
 
