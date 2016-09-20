@@ -65,7 +65,7 @@ TOOLS="tap, reset"
 
 hover = HoverTool(names = ["glyphs"],
                   tooltips=[("Counts", "@counts"),
-                            ("wikidataID for this item", "@wikidataID")])
+                            ("wikidataID for this item (x-axis)", "@wikidataID")])
 
 p = Figure(plot_height=700, plot_width=700, title="",
            tools=TOOLS, toolbar_location="above",
