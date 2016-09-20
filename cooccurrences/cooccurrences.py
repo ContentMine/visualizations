@@ -64,7 +64,8 @@ selected, new_x_factors, new_y_factors = get_subset(dictionary_selector.value, d
 TOOLS="tap, reset"
 
 hover = HoverTool(names = ["glyphs"],
-                  tooltips=[("Counts", "@counts"),
+                  tooltips=[("Cooccurring", "@x, @y"),
+                            ("Counts", "@counts"),
                             ("wikidataID for this item (x-axis)", "@wikidataID")])
 
 p = Figure(plot_height=700, plot_width=700, title="",
@@ -86,22 +87,22 @@ taptool.callback = OpenURL(url=url)
 renderer = p.select(name="glyphs")[0]
 renderer.selection_glyph = renderer.glyph
 renderer.nonselection_glyph = renderer.glyph
+renderer.hover_glyph = renderer.glyph
 
-table_columns = [TableColumn(field="x", title="X-axis facts"),
-                 TableColumn(field="y", title="Y-axis facts"),
-                 TableColumn(field="raw", title="Counts")]
-data_table = DataTable(source=source, columns=table_columns, width=400, height=600)
+# table_columns = [TableColumn(field="x", title="X-axis facts"),
+#                  TableColumn(field="y", title="Y-axis facts"),
+#                  TableColumn(field="raw", title="Counts")]
+# data_table = DataTable(source=source, columns=table_columns, width=400, height=600)
 
 
-controls = [top_n, dictionary_selector]
-for control in controls:
-    control.on_change('value', update)
+top_n.on_change('value', update)
+dictionary_selector.on_change('value', update)
 
 
 ### LAYOUT
 description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 
-inputs = row(*controls)
+inputs = row(top_n, dictionary_selector)
 layout = column(description, inputs, p)
 curdoc().add_root(layout)
 curdoc().title = "Exploring co-occurrences of facts"
