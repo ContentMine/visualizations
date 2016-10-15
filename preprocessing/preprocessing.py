@@ -49,24 +49,44 @@ def preprocess(rawdatapath):
     rawmetadata = get_raw(os.path.join(rawdatapath, "metadata.json"))
     parsed_facts = rawfacts.join(pd.DataFrame(rawfacts["_source"].to_dict()).T).drop("_source", axis=1)
     parsed_metadata = rawmetadata.join(pd.DataFrame(rawmetadata["_source"].to_dict()).T).drop("_source", axis=1)
+    parsed_metadata.rename(columns={"title":"articleTitle"}, inplace=True)
     clean(parsed_facts)
     clean(parsed_metadata)
+    parsed_metadata = parsed_metadata.join(pd.DataFrame(parsed_metadata["journalInfo"].to_dict()).T).drop("journalInfo", axis=1)
+    clean(parsed_metadata)
+    parsed_metadata = parsed_metadata.join(pd.DataFrame(parsed_metadata["journal"].to_dict()).T).drop("journal", axis=1)
+    clean(parsed_metadata)
     df = pd.merge(parsed_facts, parsed_metadata, how="inner", on="cprojectID", suffixes=('_fact', '_meta'))
+    df.rename(columns={"title":"journalTitle"}, inplace=True)
     df["sourcedict"] = get_dictionary(df)
     df["term"] = df["term"].map(str.lower)
     df["wikidataID"] = get_wikidataIDs(df)
     df.drop_duplicates("_id_fact", inplace=True)
     return df
 
-def get_preprocessed_df(cacheddatapath, rawdatapath):
+def get_preprocessed_df(cacheddatapath=None, rawdatapath=None):
     try:
         with gzip.open(os.path.join(cacheddatapath, "preprocessed_df.pklz"), "rb") as infile:
             df = pickle.load(infile)
     except:
         df = preprocess(rawdatapath)
+        if rawdatapath is None:
+            pass
+            # needs an io error for missing rawdatapath
         with gzip.open(os.path.join(cacheddatapath, "preprocessed_df.pklz"), "wb") as outfile:
             pickle.dump(df, outfile, protocol=4)
     return df
+
+def get_overview_statistics(cacheddatapath):
+    df = get_preprocessed_df(cacheddatapath)
+    num_facts = len(df)
+    num_papers = len(df["pmcid"].unique())
+    ts = pd.to_datetime(df["firstPublicationDate"]).sort_values()
+    y_earliest = pd.Timestamp(ts.head(1).values[0]).year
+    y_latest = pd.Timestamp(ts.tail(1).values[0]).year
+    m_earliest = pd.Timestamp(ts.head(1).values[0]).month
+    m_latest = pd.Timestamp(ts.tail(1).values[0]).month
+    return num_facts, num_papers, y_earliest, m_earliest, y_latest, m_latest
 
 def make_wikidata_dict(cacheddatapath, rawdatapath):
     wikidataIDs = {}
@@ -193,6 +213,22 @@ def get_timeseries_features(cacheddatapath, rawdatapath):
             pickle.dump(ts_features, outfile, protocol=4)
     return ts_features
 
+def make_journal_features(df):
+    journ_raw = df[["firstPublicationDate", "journalTitle", "pmcid", "term"]]
+    #journ_features = journ_raw.pivot_table(index='firstPublicationDate', columns=["journalTitle"], aggfunc=len)
+    return journ_raw
+
+def get_journal_features(cacheddatapath, rawdatapath):
+    try:
+        with gzip.open(os.path.join(cacheddatapath, "journal_features.pklz"), "rb") as infile:
+            journ_raw = pickle.load(infile)
+    except:
+        df = get_preprocessed_df(cacheddatapath, rawdatapath)
+        journ_raw = make_journal_features(df)
+        with gzip.open(os.path.join(cacheddatapath, "journal_features.pklz"), "wb") as outfile:
+            pickle.dump(journ_raw, outfile, protocol=4)
+    return journ_raw
+
 def make_distribution_features(df):
     dist_raw = df[["firstPublicationDate", "sourcedict"]]
     dist_features = dist_raw.pivot_table(index="firstPublicationDate", columns=["sourcedict"], aggfunc=len)
@@ -239,6 +275,11 @@ def main(args):
     else:
         cacheddatapath = config.cacheddatapath
 
+    if args.results:
+        resultspath = args.results
+    else:
+        resultspath = config.resultspath
+
     get_preprocessed_df(cacheddatapath, rawdatapath)
     get_series(cacheddatapath, rawdatapath, "term")
     get_coocc_features(cacheddatapath, rawdatapath)
@@ -246,6 +287,7 @@ def main(args):
     get_timeseries_features(cacheddatapath, rawdatapath)
     get_coocc_factsets(cacheddatapath, rawdatapath)
     get_wikidata_dict(cacheddatapath, rawdatapath)
+    get_journal_features(cacheddatapath, rawdatapath)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='ingest and preprocess contentmine facts from elasticsearch dumps and CProjects')
