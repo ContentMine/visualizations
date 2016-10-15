@@ -19,17 +19,17 @@ import gzip
 
 
 
-with gzip.open("coocc_factsets.pklz", "rb") as infile:
+with gzip.open("../data/coocc_factsets.pklz", "rb") as infile:
     factsets = pickle.load(infile)
 
 
-with gzip.open("../wikidata_dict.pklz", "rb") as infile:
+with gzip.open("../data/wikidata_dict.pklz", "rb") as infile:
     wikidataIDs = pickle.load(infile)
 
 # Create Input controls
 dictionaries = sorted([f[0] for f in list(factsets.keys())])
 top_n = Slider(title="Number of top-n items to display", value=10, start=5, end=25, step=5)
-dictionary_selector = Select(title="Dictionary", options=dictionaries, value=dictionaries[8])
+dictionary_selector = Select(title="Dictionary", options=dictionaries, value=dictionaries[-1])
 
 def get_subset(x_axis, y_axis):
     return factsets.get((x_axis, y_axis))
@@ -103,6 +103,6 @@ dictionary_selector.on_change('value', update)
 description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 
 inputs = row(top_n, dictionary_selector)
-layout = column(description, inputs, p)
+layout = column(inputs, p)
 curdoc().add_root(layout)
 curdoc().title = "Exploring co-occurrences of facts"

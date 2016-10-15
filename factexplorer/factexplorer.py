@@ -26,7 +26,7 @@ colors=palettes.Dark2_8
 
 # load initial data
 
-with gzip.open("term_series.pklz", "rb") as infile:
+with gzip.open("../data/term_series.pklz", "rb") as infile:
     df = pickle.load(infile)
 
 # Create Input controls
@@ -109,6 +109,6 @@ update(None, None, None)
 
 description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 inputs = row(*controls)
-layout = column(description, inputs, fig)
+layout = column(inputs, fig)
 curdoc().add_root(layout)
 curdoc().title = "Exploring timeseries of selected facts"
