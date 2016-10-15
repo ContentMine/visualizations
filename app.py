@@ -17,8 +17,16 @@ from bokeh.client.session import pull_session, push_session, ClientSession
 
 from preprocessing import preprocessing as pp
 
+## set up logging
+logger = logging.getLogger("applogger")
+sh_out = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+sh_out.setFormatter(formatter)
+logger.addHandler(sh_out)
+
 # bokeh serve cooccurrences/cooccurrences.py trending/trending.py factexplorer/factexplorer.py dictionaries/dictionaries.py --port=$PORT --host=contentmine-demo.herokuapp.com --host=localhost:5006  --address=0.0.0.0 --use-xheaders --allow-websocket-origin=contentmine-demo.herokuapp.com --host=localhost:5100 --host=localhost:5000 --allow-websocket-origin=127.0.0.1:5000 --allow-websocket-origin=0.0.0.0:5000 --host=127.0.0.1
-bokeh_process = subprocess.Popen(
+try:
+    bokeh_process = subprocess.Popen(
                 ['bokeh', 'serve',
                 'cooccurrences/cooccurrences.py', 'trending/trending.py', 'factexplorer/factexplorer.py', 'dictionaries/dictionaries.py',
                     '--port=5006', '--host=contentmine-demo.herokuapp.com', '--host=localhost:5006', '--address=0.0.0.0',
@@ -26,15 +34,11 @@ bokeh_process = subprocess.Popen(
                     '--use-xheaders', '--allow-websocket-origin=contentmine-demo.herokuapp.com', '--host=localhost:5100',
                     '--host=localhost:5000', '--allow-websocket-origin=127.0.0.1:5000', '--allow-websocket-origin=0.0.0.0:5000', '--host=127.0.0.1'],
                 stdout=subprocess.PIPE)
-
+except:
+    logger.info("could not start bokeh server")
 app = Flask('contentmine-demo')
 
-## set up logging
-logger = logging.getLogger("applogger")
-sh_out = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
-sh_out.setFormatter(formatter)
-logger.addHandler(sh_out)
+
 
 month_map = {1: "January", 2: "February", 3: "March", 4: "April",
              5: "May", 6: "June", 7: "July", 8: "August",
