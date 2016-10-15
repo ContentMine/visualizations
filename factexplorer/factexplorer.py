@@ -107,7 +107,6 @@ update(None, None, None)
 
 ### LAYOUT
 
-description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 inputs = row(*controls)
 layout = column(inputs, fig)
 curdoc().add_root(layout)

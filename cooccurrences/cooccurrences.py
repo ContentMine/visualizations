@@ -100,7 +100,6 @@ dictionary_selector.on_change('value', update)
 
 
 ### LAYOUT
-description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 
 inputs = row(top_n, dictionary_selector)
 layout = column(inputs, p)

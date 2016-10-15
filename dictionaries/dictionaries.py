@@ -52,7 +52,6 @@ ts_share.tools[2].reset_size=False
 
 ### LAYOUT
 
-description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 layout = column(ts_abs, ts_share)
 curdoc().add_root(layout)
 curdoc().title = "Exploring aggregated counts of facts over dictionaries"
