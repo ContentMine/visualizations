@@ -22,7 +22,7 @@ with gzip.open("../data/dist_features.pklz", "rb") as infile:
     dist = pickle.load(infile)
 
 dist.index=pd.to_datetime(dist.index)
-dist = dist.groupby(pd.TimeGrouper(freq="D")).sum()
+dist = dist.groupby(pd.TimeGrouper(freq="A")).sum()
 share = (dist.T / dist.sum(axis=1)).T
 #dist["date"] = dist.index
 dictionaries = sorted(dist.columns.tolist())
