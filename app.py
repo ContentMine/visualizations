@@ -68,7 +68,7 @@ def cooccurrences():
         "description.html",
         script = script,
         title = "Exploring co-occurrences of facts",
-        summary = summary
+        summary = summary, description = "The plot shows the count of co-occurrences of facts with other facts of their dictionary, in a range of top 5 to top 25. Co-occurrence between two facts is defined as appearing together in the same publication."
     )
 
 @app.route("/trending")
@@ -79,7 +79,7 @@ def trending():
         "description.html",
         script = script,
         title = "Exploring most frequent and uptrending facts",
-        summary = summary
+        summary = summary, description = "The left column shows the top 10 facts, determined by absolute counts over the whole period. The right column shows the top 10 uptrending facts, determined by the sum of percentage changes of daily counts."
     )
 
 @app.route("/dictionaries")
@@ -90,7 +90,7 @@ def dictionaries():
         "description.html",
         script = script,
         title = "Exploring aggregated counts of facts over dictionaries",
-        summary = summary
+        summary = summary, description = "The upper time series shows the absolute counts of facts, aggregated by their source dictionary. The lower time series shows the relative share of facts per dictionary, as a fraction of the daily total count."
     )
 
 @app.route("/factexplorer")
@@ -101,7 +101,7 @@ def factexplorer():
         "description.html",
         script = script,
         title = "Exploring timeseries of selected facts",
-        summary = summary
+        summary = summary, description = "The facts can be selected by user input. If no fact can be found, the graph will not change."
     )
 
 if __name__ == '__main__':
