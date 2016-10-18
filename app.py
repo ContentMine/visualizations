@@ -12,7 +12,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 from flask import Flask, render_template, request, redirect
-from bokeh.embed import components, autoload_server
+from bokeh.embed import components, autoload_server, autoload_static
 from bokeh.client.session import pull_session, push_session, ClientSession
 
 from preprocessing import preprocessing as pp
@@ -70,8 +70,8 @@ def index():
 
 @app.route("/cooccurrences")
 def cooccurrences():
-    # session = pull_session(url="http://localhost:5006/cooccurrences")
-    script = autoload_server(model=None, app_path="/cooccurrences")
+    session = pull_session(url="http://localhost:5006/cooccurrences")
+    script = autoload_server(model=None, session_id=session.id, app_path="/cooccurrences")
     return render_template(
         "description.html",
         script = script,
@@ -81,8 +81,8 @@ def cooccurrences():
 
 @app.route("/trending")
 def trending():
-    # session = pull_session(url="http://localhost:5006/trending")
-    script = autoload_server(model=None, app_path="/trending")
+    session = pull_session(url="http://127.0.0.1:5006/trending")
+    script = autoload_server(model=None, session_id=session.id, app_path="/trending")
     return render_template(
         "description.html",
         title = "Exploring most frequent and uptrending facts",
@@ -92,8 +92,8 @@ def trending():
 
 @app.route("/dictionaries")
 def dictionaries():
-    # session = pull_session(url="http://localhost:5006/dictionaries")
-    script = autoload_server(model=None, app_path="/dictionaries")
+    session = pull_session(url="http://localhost:5006/dictionaries")
+    script = autoload_server(model=None, session_id=session.id, app_path="/dictionaries")
     return render_template(
         "description.html",
         script = script,
@@ -103,8 +103,8 @@ def dictionaries():
 
 @app.route("/factexplorer")
 def factexplorer():
-    # session = pull_session(url="http://localhost:5006/factexplorer")
-    script = autoload_server(model=None, app_path="/factexplorer")
+    session = pull_session(url="http://localhost:5006/factexplorer")
+    script = autoload_server(model=None, session_id=session.id, app_path="/factexplorer")
     return render_template(
         "description.html",
         script = script,
