@@ -92,7 +92,7 @@ def trending():
 
 @app.route("/dictionaries")
 def dictionaries():
-    session = pull_session(url="http://localhost:5006/dictionaries")
+    session = pull_session(url="http://0.0.0.0:5006/dictionaries")
     script = autoload_server(model=None, session_id=session.id, app_path="/dictionaries")
     return render_template(
         "description.html",
