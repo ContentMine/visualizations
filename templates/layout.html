@@ -1,7 +1,14 @@
 <!doctype html>
-<title>ContentMine Demo</title>
-<link rel=stylesheet type=text/css href="static/css/CMstyle.css">
-<div class=page>
-  <h1>ContentMine Demo</h1>
-  {% block body %}{% endblock %}
-</div>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    {% block head %}
+    <title>ContentMine Demo</title>
+    {% endblock %}
+    <link rel=stylesheet type=text/css href="static/css/CMstyle.css">
+  </head>
+  <div class=page>
+    <h1>ContentMine Demo</h1>
+    {% block body %}{% endblock %}
+  </div>
+</html>
