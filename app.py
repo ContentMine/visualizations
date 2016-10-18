@@ -71,7 +71,7 @@ def index():
 @app.route("/cooccurrences")
 def cooccurrences():
     # session = pull_session(url="http://localhost:5006/cooccurrences")
-    script = autoload_server(model=None, app_path="/cooccurrences", url="http://127.0.0.1:5006")
+    script = autoload_server(model=None, app_path="/cooccurrences")
     return render_template(
         "description.html",
         script = script,
@@ -82,7 +82,7 @@ def cooccurrences():
 @app.route("/trending")
 def trending():
     # session = pull_session(url="http://localhost:5006/trending")
-    script = autoload_server(model=None, app_path="/trending", url="http://127.0.0.1:5006")
+    script = autoload_server(model=None, app_path="/trending")
     return render_template(
         "description.html",
         title = "Exploring most frequent and uptrending facts",
@@ -93,7 +93,7 @@ def trending():
 @app.route("/dictionaries")
 def dictionaries():
     # session = pull_session(url="http://localhost:5006/dictionaries")
-    script = autoload_server(model=None, app_path="/dictionaries", url="http://127.0.0.1:5006")
+    script = autoload_server(model=None, app_path="/dictionaries")
     return render_template(
         "description.html",
         script = script,
@@ -104,7 +104,7 @@ def dictionaries():
 @app.route("/factexplorer")
 def factexplorer():
     # session = pull_session(url="http://localhost:5006/factexplorer")
-    script = autoload_server(model=None, app_path="/factexplorer", url="http://127.0.0.1:5006")
+    script = autoload_server(model=None, app_path="/factexplorer")
     return render_template(
         "description.html",
         script = script,
