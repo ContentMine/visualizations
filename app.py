@@ -72,8 +72,8 @@ def index():
 
 @app.route("/cooccurrences")
 def cooccurrences():
-    session = pull_session(url="https://contentmine-demo.herokuapp.com/cooccurrences")
-    script = autoload_server(model=None, session_id=session.id, app_path="/cooccurrences", url="https://contentmine-demo.herokuapp.com")
+    session = pull_session(url="https://contentmine-demo-staging.herokuapp.com/cooccurrences")
+    script = autoload_server(model=None, session_id=session.id, app_path="/cooccurrences", url="https://contentmine-demo-staging.herokuapp.com")
     # script, div = components(co.layout)
     return render_template(
         "description.html",
@@ -96,7 +96,7 @@ def trending():
 @app.route("/dictionaries")
 def dictionaries():
     # session = pull_session(url="http://0.0.0.0:5006/dictionaries")
-    script = autoload_server(model=None, app_path="/dictionaries")
+    script = autoload_server(model=None, app_path="/dictionaries", url="http://0.0.0.0:5006")
     return render_template(
         "description.html",
         script = script,
@@ -107,12 +107,23 @@ def dictionaries():
 @app.route("/factexplorer")
 def factexplorer():
     # session = pull_session(url="http://localhost:5006/factexplorer")
-    script = autoload_server(model=None, app_path="/factexplorer")
+    script = autoload_server(model=None, app_path="/factexplorer", url="http://localhost")
     return render_template(
         "description.html",
         script = script,
         title = "Exploring timeseries of selected facts",
         summary = summary, description = "The facts can be selected by user input. If no fact can be found, the graph will not change."
+    )
+
+@app.route("/journals")
+def journals():
+    # session = pull_session(url="http://localhost:5006/journals")
+    script = autoload_server(model=None, app_path="/journals", url="http://localhost:5006")
+    return render_template(
+        "description.html",
+        script = script,
+        title = "Exploring paper distribution across journals",
+        summary = summary, description = "This graph shows the distribution of papers over journals, with absolute counts on the left hand scale, and cumulative percentage on the right hand scale."
     )
 
 if __name__ == '__main__':
