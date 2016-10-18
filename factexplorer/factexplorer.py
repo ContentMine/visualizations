@@ -1,7 +1,5 @@
 # factheatmap.py
 
-import os
-
 import pandas as pd
 import numpy as np
 
@@ -16,10 +14,7 @@ from bokeh.models import FixedTicker, SingleIntervalTicker, TapTool, BoxSelectTo
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
-import itertools
-
 from preprocessing import preprocessing
-import config
 
 import pickle
 import gzip
@@ -31,19 +26,19 @@ colors=palettes.Dark2_8
 
 # load initial data
 
-with gzip.open("term_series.pklz", "rb") as infile:
+with gzip.open("../data/term_series.pklz", "rb") as infile:
     df = pickle.load(infile)
 
 # Create Input controls
 
-text_input = TextInput(value="erlotinib, zika, myopathy, retinitis",
+text_input = TextInput(value="dengue, west nile, chikungunya, yellow fever",
                         title="Enter up to 8 comma separated facts:", width=600)
 go_button = Button(label="Update", width=70)
 
 timegroupoptionsmapper = {0:"A", 1:"M", 2:"D"}
 trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
-timegroup = RadioGroup(labels=timegroupoptions, active=2)
+timegroup = RadioGroup(labels=timegroupoptions, active=1)
 
 
 # def get_single_fact(series, fact):
@@ -63,7 +58,10 @@ def get_ts_data():
     return ts
 
 
-def update():
+def on_click_update():
+    update(None, None, None)
+
+def update(attr, old, new):
     new_data = get_ts_data()
     new_columns = new_data.columns.tolist()
     new_data.columns = [str(r) for r in list(range(0,len(new_columns)))]
@@ -100,17 +98,16 @@ legend = Legend(legends=legends, location=(0, 0))
 fig.add_layout(legend, "right")
 
 
-controls = [text_input, go_button]
-go_button.on_click(update)
-#timegroup.on_change("value", update)
+controls = [text_input, go_button, timegroup]
+go_button.on_click(on_click_update)
+timegroup.on_change("active", update)
 
 # initial update
-update()
+update(None, None, None)
 
 ### LAYOUT
 
-description = Div(text=open("description.html").read(), render_as_text=False, width=800)
 inputs = row(*controls)
-layout = column(description, inputs, fig)
+layout = column(inputs, fig)
 curdoc().add_root(layout)
 curdoc().title = "Exploring timeseries of selected facts"

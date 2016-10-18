@@ -1,10 +1,7 @@
 # main.py
-import os
-
-from math import pi
 import numpy as np
 import pandas as pd
-import os
+
 
 from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
@@ -19,46 +16,44 @@ from bokeh.layouts import gridplot
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
-from itertools import chain, repeat
-
-from preprocessing import preprocessing
 import config
 import pickle
 import gzip
 
-with gzip.open("timeseries_features.pklz", "rb") as infile:
+with gzip.open("../data/timeseries_features.pklz", "rb") as infile:
     ts = pickle.load(infile)
 
 dictionaries = sorted(ts.columns.levels[0])
 resources = INLINE
 colors=palettes.Paired10
 
-def get_dataset(df, facetvalue, relative):
+def get_dataset(df, dictvalue, relative):
     rel = (df.diff()/df*100).cumsum()
     if relative:
-        selection = rel.sum()[facetvalue].sort_values(ascending=False).index
+        selection = rel.sum()[dictvalue].sort_values(ascending=False).index
+        # check with tail(5) of df; or second half/third/quarter of df only
     else:
-        selection = df.sum()[facetvalue].sort_values(ascending=False).index
-    selected = df[facetvalue][selection].fillna(0)
+        selection = df.sum()[dictvalue].sort_values(ascending=False).index
+    selected = df[dictvalue][selection].fillna(0)
     return selected
 
 def prepare_facts(dictionaries):
     factsets = {}
-    for facet in dictionaries:
-        absolutes = get_dataset(ts, facet, False)
-        trendings = get_dataset(ts, facet, True)
-        factsets[facet] = (absolutes, trendings)
+    for dictionary in dictionaries:
+        absolutes = get_dataset(ts, dictionary, False)
+        trendings = get_dataset(ts, dictionary, True)
+        factsets[dictionary] = (absolutes, trendings)
     return factsets
 
 factsets = prepare_facts(dictionaries)
 
 
-def get_subset(facet):
-    subset = factsets.get(facet)
+def get_subset(dictionary):
+    subset = factsets.get(dictionary)
     return subset
 
 def update(attrname, old, new):
-    subset = get_subset(facetchooser.value)
+    subset = get_subset(dictchooser.value)
     new_absolute_source = subset[0] \
                                         .ix[:, :top_n.value] \
                                         .groupby(pd.TimeGrouper(freq=timegroupoptionsmapper[timegroup.active])) \
@@ -107,11 +102,11 @@ trendingoptionsmapper = {0:False, 1:True}
 timegroupoptions = ["Year", "Month", "Day"]
 
 top_n = Slider(title="Number of top-n items to display", value=10, start=1, end=10, step=1)
-facetchooser = Select(title="dictionaries", options=dictionaries, value=dictionaries[1])
-timegroup = RadioGroup(labels=timegroupoptions, active=2)
+dictchooser = Select(title="dictionaries", options=dictionaries, value=dictionaries[-2])
+timegroup = RadioGroup(labels=timegroupoptions, active=0)
 trending_chooser = RadioGroup(labels=["absolute counts", "period-to-period change"], active=0)
 
-initial_subset = get_subset(facetchooser.value)
+initial_subset = get_subset(dictchooser.value)
 abs_sources = [ColumnDataSource(dict(date=initial_subset[0].index, y=initial_subset[0][l])) for l in initial_subset[0].columns.tolist()[:top_n.value]]
 rel_sources = [ColumnDataSource(dict(date=initial_subset[1].index, y=initial_subset[1][l])) for l in initial_subset[1].columns.tolist()[:top_n.value]]
 abs_point_sources = [ColumnDataSource(dict(date=[initial_subset[0][l].idxmax()],
@@ -133,19 +128,19 @@ def make_plots(linesources, pointsources):
     for linesource, pointsource in zip(linesources, pointsources):
         fig = Figure(title=None, toolbar_location=None, tools=[],
                    x_axis_type="datetime",
-                   width=300, height=90)
+                   width=300, height=70)
 
         fig.xaxis.visible = False
         if i in [0, 9] :
             fig.xaxis.visible = True
-            fig.height = 110
+            fig.height = 90
         fig.yaxis.visible = False
         fig.xgrid.visible = True
         fig.ygrid.visible = False
         fig.min_border_left = 10
         fig.min_border_right = 10
-        fig.min_border_top = 10
-        fig.min_border_bottom = 10
+        fig.min_border_top = 5
+        fig.min_border_bottom = 5
         if not i in [0, 9]:
             fig.xaxis.major_label_text_font_size = "0pt"
         #fig.yaxis.major_label_text_font_size = "0pt"
@@ -157,7 +152,7 @@ def make_plots(linesources, pointsources):
 
         fig.line(x='date', y="y", source=linesource)
         fig.circle(x='date', y='y', size=5, source=pointsource)
-        fig.text(x='date', y='y', text='text', y_offset=20, text_font_size='7pt', source=pointsource)
+        fig.text(x='date', y='y', text='text', x_offset=5, y_offset=10, text_font_size='7pt', source=pointsource)
 
         fig.title.align = 'left'
         fig.title.text_font_style = 'normal'
@@ -169,17 +164,15 @@ def make_plots(linesources, pointsources):
 abs_arrangement = make_plots(abs_sources, abs_point_sources)
 rel_arrangement = make_plots(rel_sources, rel_point_sources)
 
-controls = [facetchooser, timegroup]
-for control in controls:
-    control.on_change('value', update)
+dictchooser.on_change("value", update)
+timegroup.on_change('active', update)
 
-inputs = row(*controls)
+inputs = row(dictchooser, timegroup)
 
 update(None, None, None) # initial load of the data
 
 ### LAYOUT
 
-description = Div(text=open("description.html").read(), render_as_text=False, width=800)
-layout = column(description, inputs, row(column(abs_arrangement), column(rel_arrangement)))
+layout = column(inputs, row(column(abs_arrangement), column(rel_arrangement)))
 curdoc().add_root(layout)
-curdoc().title = "Exploring most frequent and uptrending facts"
+curdoc.title = "Exploring most frequent and uptrending facts"
