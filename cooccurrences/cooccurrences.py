@@ -70,6 +70,7 @@ hover = HoverTool(names = ["glyphs"],
 fig = Figure(plot_height=700, plot_width=700, title="",
            tools=TOOLS, toolbar_location="above",
            x_range=new_x_factors[:top_n.value],  y_range=new_y_factors[:top_n.value])
+
 fig.add_tools(hover)
 
 update(None, None, None) # initial load of the data
@@ -98,10 +99,11 @@ top_n.on_change('value', update)
 dictionary_selector.on_change('value', update)
 
 
-
 ### LAYOUT
 
 inputs = row(top_n, dictionary_selector)
+
 layout = column(inputs, fig)
+
 curdoc().add_root(layout)
 curdoc().title = "Exploring co-occurrences of facts"

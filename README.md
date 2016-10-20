@@ -56,11 +56,14 @@ python3 preprocessing/preprocessing.py --raw /PATH/TO/RAWDATA --cache /PATH/TO/C
 
 ## Deployment to heroku
 
+
 ### Deployment notes
+
 
 * https://devcenter.heroku.com/articles/python-gunicorn
 * Updating dependencies: http://stackoverflow.com/questions/9471017/how-do-i-upgrade-a-dependency-in-a-python-project-on-heroku
 * Scaling out and up: https://devcenter.heroku.com/articles/dynos#isolation-and-security
+
 
 ### Deploy via pipeline
 
@@ -77,6 +80,7 @@ git push staging master
 Review functionality and then promote to production (via CLI or web interface)
 
 ## Issues
+
 
 From [Tutorial](http://blog.thedataincubator.com/2015/09/painlessly-deploying-data-apps-with-bokeh-flask-and-heroku/):
 ```
