@@ -65,16 +65,28 @@ python3 preprocessing/preprocessing.py --raw /PATH/TO/RAWDATA --cache /PATH/TO/C
 * Scaling out and up: https://devcenter.heroku.com/articles/dynos#isolation-and-security
 
 
+###
+
+Currently we have to split bokeh and flask into two apps (dynos), until the interprocess communication problem can be solved.
+Flask frontend-development is happening on branch flask, bokeh server development is happening on branch server.
+Differences are the Procfile, and in app.py, where autoload_server() looks at different urls when running on the same or two dynos. Data needs to be updated in each branch.
+
 ### Deploy via pipeline
 
-Add staging app to git remotes
+Add staging app and server app to git remotes
 ```
 git remote add staging https://git.heroku.com/contentmine-demo-staging.git
+git remote add server https://git.heroku.com/contentmine-demos.git
 ```
 
-Push new code to staging
+Push new flask-app code to staging
 ```
-git push staging master    
+git push staging flask:master    
+```
+
+Push new server-app code to server
+```
+git push server server:master    
 ```
 
 Review functionality and then promote to production (via CLI or web interface)
