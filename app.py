@@ -63,7 +63,7 @@ def main():
 @app.route("/index")
 def index():
     return render_template(
-        "description.html",
+        "index.html",
         title = "Overview",
         summary = summary
     )
