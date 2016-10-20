@@ -73,7 +73,7 @@ def index():
 @app.route("/cooccurrences")
 def cooccurrences():
     # session = pull_session(url="https://contentmine-demo-staging.herokuapp.com/cooccurrences")
-    script = autoload_server(model=None, app_path="/cooccurrences", url="https://contentmine-demo-staging.herokuapp.com")
+    script = autoload_server(model=None, app_path="/cooccurrences", url="https://contentmine-demos.herokuapp.com")
     return render_template(
         "description.html",
         script = script,
@@ -84,7 +84,7 @@ def cooccurrences():
 @app.route("/trending")
 def trending():
     # session = pull_session(url="http://127.0.0.1:5006/trending")
-    script = autoload_server(model=None, app_path="/trending", url="http://127.0.0.1:5006")
+    script = autoload_server(model=None, app_path="/trending", url="https://contentmine-demos.herokuapp.com")
     return render_template(
         "description.html",
         title = "Exploring most frequent and uptrending facts",
@@ -95,7 +95,7 @@ def trending():
 @app.route("/dictionaries")
 def dictionaries():
     # session = pull_session(url="http://0.0.0.0:5006/dictionaries")
-    script = autoload_server(model=None, app_path="/dictionaries", url="http://0.0.0.0:5006")
+    script = autoload_server(model=None, app_path="/dictionaries", url="https://contentmine-demos.herokuapp.com")
     return render_template(
         "description.html",
         script = script,
@@ -106,7 +106,7 @@ def dictionaries():
 @app.route("/factexplorer")
 def factexplorer():
     # session = pull_session(url="http://localhost:5006/factexplorer")
-    script = autoload_server(model=None, app_path="/factexplorer", url="http://localhost")
+    script = autoload_server(model=None, app_path="/factexplorer", url="https://contentmine-demos.herokuapp.com")
     return render_template(
         "description.html",
         script = script,
@@ -117,7 +117,7 @@ def factexplorer():
 @app.route("/journals")
 def journals():
     # session = pull_session(url="http://localhost:5006/journals")
-    script = autoload_server(model=None, app_path="/journals", url="http://localhost:5006")
+    script = autoload_server(model=None, app_path="/journals", url="https://contentmine-demos.herokuapp.com")
     return render_template(
         "description.html",
         script = script,
