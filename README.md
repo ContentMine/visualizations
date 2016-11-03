@@ -33,7 +33,7 @@ At the moment very basic, three options have to be set in `config.py`:
 * `resultspath` = where the output-htmls and plots are expected
 
 
-## Running an inveractive visualization
+## Running an interactive visualization
 
 Fork, clone or download this repo.
 
