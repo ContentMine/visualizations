@@ -10,7 +10,7 @@ from pycproject.readctree import CProject
 from pycproject import convert2elasticdump as cp2ed
 
 import pandas as pd
-from cmvisualizations.preprocessing import preprocessing
+from preprocessing import preprocessing
 
 
 rawfactspath = "testdata/facts20160601-05.json"
