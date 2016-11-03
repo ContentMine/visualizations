@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import sys
 import socket
+import subprocess
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -14,9 +15,7 @@ from flask import Flask, render_template, request, redirect
 from bokeh.embed import components, autoload_server
 from bokeh.client.session import pull_session, push_session, ClientSession
 
-
-
-app = Flask('contentmine-demo')
+from preprocessing import preprocessing as pp
 
 ## set up logging
 logger = logging.getLogger("applogger")
@@ -25,49 +24,106 @@ formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
 sh_out.setFormatter(formatter)
 logger.addHandler(sh_out)
 
+# bokeh serve cooccurrences/cooccurrences.py trending/trending.py factexplorer/factexplorer.py dictionaries/dictionaries.py --port=$PORT --host=contentmine-demo.herokuapp.com --host=localhost:5006  --address=0.0.0.0 --use-xheaders --allow-websocket-origin=contentmine-demo.herokuapp.com --host=localhost:5100 --host=localhost:5000 --allow-websocket-origin=127.0.0.1:5000 --allow-websocket-origin=0.0.0.0:5000 --host=127.0.0.1
+# try:
+#     bokeh_process = subprocess.Popen(
+#                 ['bokeh', 'serve',
+#                 'cooccurrences/cooccurrences.py', 'trending/trending.py', 'factexplorer/factexplorer.py', 'dictionaries/dictionaries.py',
+#                     '--port=5006',
+#                     '--use-xheaders',
+#                     '--host=contentmine-demo.herokuapp.com',
+#                     '--host=localhost', '--host=localhost:5000', '--host=localhost:5006','--host=localhost:5100', '--host=127.0.0.1',
+#                     '--allow-websocket-origin=contentmine-demo.herokuapp.com', '--allow-websocket-origin=0.0.0.0:5000', '--allow-websocket-origin=127.0.0.1:5000',
+#                     '--address=0.0.0.0'
+#                     # '--log-level=debug'
+#                     ],
+#                 stdout=subprocess.PIPE)
+# except:
+#     logger.info("could not start bokeh server")
+app = Flask('contentmine-demo')
+
+
+
+month_map = {1: "January", 2: "February", 3: "March", 4: "April",
+             5: "May", 6: "June", 7: "July", 8: "August",
+             9: "September", 10: "October", 11: "November", 12: "December"}
+
+num_facts, num_papers, y_earliest, m_earliest, y_latest, m_latest = pp.get_overview_statistics("data")
+num_facts = str(num_facts)
+num_papers = str(num_papers)
+earliest = " ".join([month_map[m_earliest], str(y_earliest)])
+latest = " ".join([month_map[m_latest], str(y_latest)])
+summary = {"num_facts":num_facts, "num_papers":num_papers,
+            "earliest":earliest, "latest":latest}
 
 @app.route('/')
 def main():
-    return redirect('/trending')
+    return redirect('/index')
+
+@app.route("/index")
+def index():
+    return render_template(
+        "index.html",
+        title = "Overview",
+        summary = summary
+    )
+
+# from cooccurrences import cooccurrences as co
 
 @app.route("/cooccurrences")
 def cooccurrences():
-    session = pull_session(url="http://localhost:5100/cooccurrences")
-    script = autoload_server(None, session_id=session.id, app_path="/cooccurrences", url="http://localhost:5100")
+    # session = pull_session(url="https://contentmine-demo-staging.herokuapp.com/cooccurrences")
+    script = autoload_server(model=None, app_path="/cooccurrences", url="https://contentmine-demos.herokuapp.com")
     return render_template(
-        "simple.html",
+        "description.html",
         script = script,
-        app_tag = "cooccurrences"
+        title = "Exploring co-occurrences of facts",
+        summary = summary, description = "The plot shows the count of co-occurrences of facts with other facts of their dictionary, in a range of top 5 to top 25. Co-occurrence between two facts is defined as appearing together in the same publication."
     )
+
 @app.route("/trending")
 def trending():
-    session = pull_session(url="http://localhost:5100/trending")
-    script = autoload_server(None, session_id=session.id, app_path="/trending", url="http://localhost:5100")
+    # session = pull_session(url="http://127.0.0.1:5006/trending")
+    script = autoload_server(model=None, app_path="/trending", url="https://contentmine-demos.herokuapp.com")
     return render_template(
-        "simple.html",
-        script = script,
-        app_tag = "trending"
+        "description.html",
+        title = "Exploring most frequent and uptrending facts",
+        summary = summary, description = "The left column shows the top 10 facts, determined by absolute counts over the whole period. The right column shows the top 10 uptrending facts, determined by the sum of percentage changes of daily counts.",
+        script = script
     )
 
 @app.route("/dictionaries")
 def dictionaries():
-    session = pull_session(url="http://localhost:5100/dictionaries")
-    script = autoload_server(None, session_id=session.id, app_path="/dictionaries", url="http://localhost:5100")
+    # session = pull_session(url="http://0.0.0.0:5006/dictionaries")
+    script = autoload_server(model=None, app_path="/dictionaries", url="https://contentmine-demos.herokuapp.com")
     return render_template(
-        "simple.html",
+        "description.html",
         script = script,
-        app_tag = "dictionaries"
+        title = "Exploring aggregated counts of facts over dictionaries",
+        summary = summary, description = "The upper time series shows the absolute counts of facts, aggregated by their source dictionary. The lower time series shows the relative share of facts per dictionary, as a fraction of the daily total count."
     )
 
 @app.route("/factexplorer")
 def factexplorer():
-    session = pull_session(url="http://localhost:5100/factexplorer")
-    script = autoload_server(None, session_id=session.id, app_path="/factexplorer", url="http://localhost:5100")
+    # session = pull_session(url="http://localhost:5006/factexplorer")
+    script = autoload_server(model=None, app_path="/factexplorer", url="https://contentmine-demos.herokuapp.com")
     return render_template(
-        "simple.html",
+        "description.html",
         script = script,
-        app_tag = "factexplorer"
+        title = "Exploring timeseries of selected facts",
+        summary = summary, description = "The facts can be selected by user input. If no fact can be found, the graph will not change."
+    )
+
+@app.route("/journals")
+def journals():
+    # session = pull_session(url="http://localhost:5006/journals")
+    script = autoload_server(model=None, app_path="/journals", url="https://contentmine-demos.herokuapp.com")
+    return render_template(
+        "description.html",
+        script = script,
+        title = "Exploring paper distribution across journals",
+        summary = summary, description = "This graph shows the distribution of papers over journals, with absolute counts on the left hand scale, and cumulative percentage on the right hand scale."
     )
 
 if __name__ == '__main__':
-    app.run(port=33507)
+    app.run(port=33507, debug=True)

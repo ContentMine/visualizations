@@ -1,10 +1,6 @@
 # main.py
-import os
 
-from math import pi
-import numpy as np
 import pandas as pd
-import os
 
 from bokeh.layouts import column, row
 from bokeh.plotting import Figure, show
@@ -19,16 +15,18 @@ from bokeh.layouts import gridplot
 import bokeh.palettes as palettes
 from bokeh.resources import INLINE, CDN
 
-from itertools import chain, repeat
-
-from preprocessing import preprocessing
-import config
 import pickle
 import gzip
 
-with gzip.open("dist_features.pklz", "rb") as infile:
+with gzip.open("../data/dist_features.pklz", "rb") as infile:
     dist = pickle.load(infile)
 
+dist.index=pd.to_datetime(dist.index)
+dist = dist.groupby(pd.TimeGrouper(freq="D")).sum()
+if len(dist) > 60:
+    dist = dist.groupby(pd.TimeGrouper(freq="M")).sum()
+if len(dist) > 24:
+    dist = dist.groupby(pd.TimeGrouper(freq="A")).sum()
 share = (dist.T / dist.sum(axis=1)).T
 #dist["date"] = dist.index
 dictionaries = sorted(dist.columns.tolist())
@@ -36,7 +34,7 @@ resources = INLINE
 colors=palettes.Paired10
 
 
-ts_abs = TimeSeries(dist, tools="pan,wheel_zoom,reset", active_scroll='wheel_zoom',
+ts_abs = TimeSeries(dist, tools="pan,wheel_zoom,reset,save", active_scroll='wheel_zoom',
                         width=800, height=400,
                         title='Frequencies of dictionaries - absolute counts', legend=True)
 ts_abs.legend.orientation = "horizontal"
@@ -46,7 +44,7 @@ ts_abs.legend.border_line_alpha = 0
 ts_abs.tools[2].reset_size=False
 
 
-ts_share = TimeSeries(share, tools="pan,wheel_zoom,reset", active_scroll='wheel_zoom',
+ts_share = TimeSeries(share, tools="pan,wheel_zoom,reset,save", active_scroll='wheel_zoom',
                         width=800, height=400,
                         title='Frequencies of dictionaries - relative share', legend=True)
 ts_share.x_range = ts_abs.x_range
@@ -58,7 +56,6 @@ ts_share.tools[2].reset_size=False
 
 ### LAYOUT
 
-description = Div(text=open("description.html").read(), render_as_text=False, width=800)
-layout = column(description, ts_abs, ts_share)
+layout = column(ts_abs, ts_share)
 curdoc().add_root(layout)
 curdoc().title = "Exploring aggregated counts of facts over dictionaries"
