@@ -1,1 +1,2 @@
-web: bokeh serve cooccurrences/cooccurrences.py trending/trending.py factexplorer/factexplorer.py dictionaries/dictionaries.py --port=$PORT --host=contentmine-demo.herokuapp.com --host=localhost:5006  --address=0.0.0.0 --use-xheaders --allow-websocket-origin=contentmine-demo.herokuapp.com --host=localhost:5100 --host=localhost:5000 --allow-websocket-origin=127.0.0.1:5000 --allow-websocket-origin=0.0.0.0:5000 --host=127.0.0.1
+web: gunicorn app:app
+bokeh: bokeh serve cooccurrences/cooccurrences.py trending/trending.py factexplorer/factexplorer.py dictionaries/dictionaries.py journals/journals.py --address=127.0.0.1 --port=5006 --host=127.0.0.1:5006 --host=localhost:5006 --allow-websocket-origin=127.0.0.1:5006 --allow-websocket-origin=0.0.0.0:5000
