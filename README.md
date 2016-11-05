@@ -51,6 +51,7 @@ python3 preprocessing/preprocessing.py --raw /PATH/TO/RAWDATA --cache /PATH/TO/C
 * Active virtualenv with `source activate contentmine3`
 * Change paths in `config.py`
 * change working directory to `visualizations`
+* move the preprocessed data which was output to `CACHEDDATA` to `data` - this data will be visualized
 * start application with `bokeh serve --show APPNAME/APPNAME.py`, e.g. `bokeh serve --show cooccurrences/cooccurrences.py`
 * This should - after a few seconds of processing - open a new browser window with the interactive visualization
 
