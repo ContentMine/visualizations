@@ -82,11 +82,13 @@ git remote add server https://git.heroku.com/contentmine-demos.git
 
 Push new flask-app code to staging
 ```
+git checkout flask
 git push staging flask:master    
 ```
 
 Push new server-app code to server
 ```
+git checkout server
 git push server server:master    
 ```
 
