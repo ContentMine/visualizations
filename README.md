@@ -74,6 +74,8 @@ Differences are the Procfile, and in app.py, where autoload_server() looks at di
 
 ### Deploy via pipeline
 
+* Production Pipelines: Read https://devcenter.heroku.com/articles/pipelines and https://devcenter.heroku.com/articles/github-integration-review-apps
+
 Add staging app and server app to git remotes
 ```
 git remote add staging https://git.heroku.com/contentmine-demo-staging.git
@@ -94,22 +96,3 @@ git push server server:master
 
 Review functionality and then promote to production (via CLI or web interface)
 
-## Issues
-
-
-From [Tutorial](http://blog.thedataincubator.com/2015/09/painlessly-deploying-data-apps-with-bokeh-flask-and-heroku/):
-```
-heroku config:add BUILDPACK_URL=https://github.com/kennethreitz/conda-buildpack.git
-```
-
-http://stackoverflow.com/questions/38417200/serving-interactive-bokeh-figure-on-heroku/38447618#38447618
-```
-web: bokeh serve --port=$PORT --host=contentmine-demo.herokuapp.com --address=0.0.0.0 --use-xheaders APPNAME/APPNAME.py
-```
-
-http://stackoverflow.com/questions/38564389/deploying-to-heroku-a-bokeh-server-plot-embedded-in-flask
-
-
-* Running bokeh-server as subprocess does not solve the issue of non-connectivity between threads, and creates new problem of two bokeh-servers wanting to listen to the same port
-
-* Production Pipelines: Read https://devcenter.heroku.com/articles/pipelines and https://devcenter.heroku.com/articles/github-integration-review-apps
