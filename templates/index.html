@@ -1,32 +1,22 @@
 {% extends "layout.html" %}
-{% block head %}
-  <title>{{ title }}</title>
-  <link
-      href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.2.min.css"
-      rel="stylesheet" type="text/css">
-  <link
-      href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.2.min.css"
-      rel="stylesheet" type="text/css">
-
-  <script src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.2.min.js"></script>
-  <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.2.min.js"></script>
-{% endblock %}
 {% block body %}
-  <div>
-    <p>The demos use sample code from a ContentMine-API dump to Zenodo and can be recreated with this <a href="https://github.com/ContentMine/visualizations/tree/master/trending" target="_blank">source code</a>.</p>
-    The raw data consists of a dump from the ContentMine-API based on a query for "Zika" on EuropePMC, which can be downloaded <a href="https://doi.org/10.5281/zenodo.154505" target="_blank">from Zenodo</a>.
-    It has been preprocessed and the features for each visualization have been extracted, see <a href="https://github.com/ContentMine/visualizations/blob/master/preprocessing/preprocessing.py" target="_blank">here</a> for the source code.
-   </p>
-   <p>The data consists of {{ summary.num_facts }} individual facts extracted from {{ summary.num_papers }} publications in the range of {{ summary.earliest }} to {{ summary.latest }} (as indicated by first publication date by EuropePMC).
-     Facts are extracted by matching the fulltext with our <a href="https://github.com/ContentMine/dictionaries" target="_blank">dictionaries</a>, a collection of controlled vocabularies of words interesting for a domain or a specific research question.
-   </p>
-   <p>There are currently following visualizations online:</p>
-   <ul>
-     <li><a href="journals">Distribution of articles over journals</a></li>
-     <li><a href="cooccurrences">Cooccurrences of facts</a></li>
-     <li><a href="dictionaries">Timeseries of aggregated fact dictionaries</a></li>
-     <li><a href="trending">Timeseries of Top 10 and uptrending facts</a></li>
-   </ul>
+  <div class="row">
+    <div class="col-lg-5">
+      <p>The demos use sample code from a ContentMine-API dump to Zenodo and can be recreated with this <a href="https://github.com/ContentMine/visualizations/tree/master/trending" target="_blank">source code</a>.</p>
+      The raw data consists of a dump from the ContentMine-API based on a query for "Zika" on EuropePMC, which can be downloaded <a href="https://doi.org/10.5281/zenodo.154505" target="_blank">from Zenodo</a>.
+      It has been preprocessed and the features for each visualization have been extracted, see <a href="https://github.com/ContentMine/visualizations/blob/master/preprocessing/preprocessing.py" target="_blank">here</a> for the source code.
+     </p>
+     <p>The data consists of {{ summary.num_facts }} individual facts extracted from {{ summary.num_papers }} publications in the range of {{ summary.earliest }} to {{ summary.latest }} (as indicated by first publication date by EuropePMC).
+       Facts are extracted by matching the fulltext with our <a href="https://github.com/ContentMine/dictionaries" target="_blank">dictionaries</a>, a collection of controlled vocabularies of words interesting for a domain or a specific research question.
+     </p>
+     <p>There are currently following visualizations online:</p>
+     <ul>
+       <li><a href="journals">Distribution of articles over journals</a></li>
+       <li><a href="cooccurrences">Cooccurrences of facts</a></li>
+       <li><a href="dictionaries">Timeseries of aggregated fact dictionaries</a></li>
+       <li><a href="trending">Timeseries of Top 10 and uptrending facts</a></li>
+     </ul>
+   </div>
   </div>
   {{ script | safe }}
 {% endblock %}
